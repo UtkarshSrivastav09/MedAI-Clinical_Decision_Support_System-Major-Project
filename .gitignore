@@ -1,0 +1,32 @@
+# Dependency directories
+node_modules/
+jspm_packages/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment variables (Sensitive)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build outputs
+dist/
+build/
+.vite/
+
+# Database (Sensitive Patient Data)
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploads/Temporary storage
+temp_uploads/
+backend/temp_uploads/
+
+# OS metadata
+.DS_Store
+Thumbs.db
