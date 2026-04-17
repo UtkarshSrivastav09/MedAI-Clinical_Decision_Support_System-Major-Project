@@ -1,0 +1,62 @@
+.triage-container { display: flex; flex-direction: column; height: 100%; }
+.kanban-board {
+  display: flex;
+  gap: 24px;
+  flex: 1;
+  min-height: 60vh;
+}
+.kanban-column {
+  flex: 1;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.kb-header {
+  padding: 16px;
+  margin: 0;
+  font-size: 1.1rem;
+  text-align: center;
+  border-bottom: 2px solid var(--border-color);
+}
+.kb-header.waiting { color: #ffab00; border-bottom-color: #ffab00; }
+.kb-header.review { color: var(--accent-cyan); border-bottom-color: var(--accent-cyan); }
+.kb-header.discharged { color: var(--success); border-bottom-color: var(--success); }
+
+.kb-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+.triage-card {
+  background: rgba(255,255,255,0.02);
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  border: 1px solid var(--border-color);
+}
+.triage-card h4 { margin: 0 0 4px 0; color: var(--text-primary); }
+.triage-card .subtext { margin: 0; font-size: 0.85rem; color: var(--text-secondary); }
+.triage-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
+.mini-tag { font-size: 0.75rem; background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; color: var(--text-primary); }
+.override-badge { font-size: 0.75rem; background: rgba(163, 113, 247, 0.2); color: var(--accent-purple); padding: 4px 8px; border-radius: 4px; margin-bottom: 12px; font-weight: 600;}
+
+.card-actions { display: flex; justify-content: flex-end; }
+.card-actions button {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.card-actions button:hover { background: rgba(255,255,255,0.1); }
