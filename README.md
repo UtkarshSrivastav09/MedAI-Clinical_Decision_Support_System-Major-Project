@@ -11,19 +11,6 @@ An industrial-grade, full-stack Clinical Decision Support System (CDSS) designed
 
 ## 🏗️ System Architecture
 
-```mermaid
-graph TD
-    A[Scanner UI] -->|Vitals + X-Ray| B[FastAPI Backend]
-    B -->|Preprocessing| C{AI Engine}
-    C -->|Gemini Flash| D[Vision Pathology Analysis]
-    C -->|Longitudinal Check| E[Historical Comparison]
-    D & E --> F[Structured JSON Report]
-    F --> G[(SQLite Database)]
-    F --> H[Admin Dashboard]
-    F --> I[Radiologist Triage Board]
-    I -->|PDF Export| J[Patient Layman Report]
-```
-
 ## 🌟 Key Features
 
 ### 1. **Advanced AI Intelligence**
