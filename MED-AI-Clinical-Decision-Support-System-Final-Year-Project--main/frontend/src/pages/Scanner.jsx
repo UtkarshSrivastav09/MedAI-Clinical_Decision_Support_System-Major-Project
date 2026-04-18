@@ -100,7 +100,7 @@ export default function Scanner() {
   };
 
   if (report) {
-     return <div className="animate-fade-in"><ReportViewer report={report} patient={patientData} imageName={uploadedImageName} patient_id={patientData.id} onReset={() => { setReport(null); setFile(null); setPreview(null); }} /></div>;
+     return <div className="animate-fade-in"><ReportViewer report={report} patient={patientData} imageName={uploadedImageName} preview={preview} patient_id={patientData.id} onReset={() => { setReport(null); setFile(null); setPreview(null); }} /></div>;
   }
 
   return (

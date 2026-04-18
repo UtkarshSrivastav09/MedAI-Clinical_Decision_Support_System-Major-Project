@@ -179,9 +179,11 @@ export default function Dashboard() {
             <h3 style={{color: 'var(--danger)'}}><AlertOctagon size={18} style={{marginRight:'8px', verticalAlign:'middle'}}/> Critical Priority Inbox</h3>
             <ul className="admin-list alerts-list" style={{marginTop: '16px'}}>
                {stats.critical_alerts?.length > 0 ? stats.critical_alerts.map((al, i) => (
-                  <li key={i} style={{background: 'rgba(255,82,82,0.1)'}}>
-                     <div className="doc-name" style={{color: isLightMode ? '#000' : '#fff'}}>{al.patient}</div>
-                     <div className="doc-count" style={{color: 'var(--danger)'}}>{al.issue}</div>
+                  <li key={i} style={{background: 'rgba(255,82,82,0.08)', flexDirection: 'column', gap: '8px', padding: '16px'}}>
+                     <div style={{display: 'flex', justifyContent: 'space-between', width: '100%'}}>
+                       <div className="doc-name" style={{color: isLightMode ? '#000' : '#fff'}}>{al.patient}</div>
+                       <div className="doc-count" style={{color: 'var(--danger)'}}>{al.issue}</div>
+                     </div>
                   </li>
                )) : <li style={{color:'var(--success)'}}>No critical cases pending.</li>}
             </ul>

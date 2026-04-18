@@ -15,7 +15,11 @@ const useAuth = () => {
       
       if (!res.ok) {
         const data = await res.json();
-        setError(data.detail || "Registration failed");
+        let errMsg = "Registration failed";
+        if (data.detail) {
+          errMsg = typeof data.detail === "string" ? data.detail : (Array.isArray(data.detail) ? data.detail[0].msg : JSON.stringify(data.detail));
+        }
+        setError(errMsg);
         return false;
       }
       
@@ -41,7 +45,11 @@ const useAuth = () => {
       
       if (!res.ok) {
         const data = await res.json();
-        setError(data.detail || "Invalid username or password");
+        let errMsg = "Invalid username or password";
+        if (data.detail) {
+          errMsg = typeof data.detail === "string" ? data.detail : (Array.isArray(data.detail) ? data.detail[0].msg : JSON.stringify(data.detail));
+        }
+        setError(errMsg);
         return false;
       }
       
