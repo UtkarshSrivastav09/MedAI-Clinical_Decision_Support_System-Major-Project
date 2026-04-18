@@ -10,9 +10,8 @@ export default function Scanner() {
   const [report, setReport] = useState(null);
   const [patientData, setPatientData] = useState(null);
   const [error, setError] = useState("");
-  const [uploadedImageName, setUploadedImageName] = useState(""); // For AI Chat logic
+  const [uploadedImageName, setUploadedImageName] = useState("");
 
-  // Smart Cache
   const [metaDocs, setMetaDocs] = useState([]);
   const [metaPts, setMetaPts] = useState([]);
 
@@ -21,7 +20,8 @@ export default function Scanner() {
   });
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/scanner-meta')
+    const org = sessionStorage.getItem("organization") || "Med-AI Global";
+    fetch(`http://127.0.0.1:8000/api/scanner-meta?org=${encodeURIComponent(org)}`)
       .then(r => r.json())
       .then(d => {
         setMetaDocs(d.doctors);
@@ -32,7 +32,6 @@ export default function Scanner() {
   const handlePatientSelect = (e) => {
     const pName = e.target.value;
     setForm({...form, name: pName});
-    // Autocascade Check
     const found = metaPts.find(x => x.name.toLowerCase() === pName.toLowerCase());
     if (found) {
         setForm(prev => ({
@@ -77,6 +76,7 @@ export default function Scanner() {
     formData.append("doctor", form.doctor || "Internal Primary");
     formData.append("phone", form.phone || "N/A");
     formData.append("email", form.email || "N/A");
+    formData.append("org", sessionStorage.getItem("organization") || "Med-AI Global");
 
     try {
       const response = await fetch("http://127.0.0.1:8000/api/scan", {
@@ -88,7 +88,7 @@ export default function Scanner() {
       if (data.status === "success") {
         setReport(data.report);
         setPatientData({...data.patient, id: data.patient_id});
-        setUploadedImageName(data.image_name); // Persist for chat session
+        setUploadedImageName(data.image_name);
       } else {
         setError("Failed to generate report.");
       }
@@ -100,13 +100,12 @@ export default function Scanner() {
   };
 
   if (report) {
-     return <div className="animate-fade-in"><ReportViewer report={report} patient={patientData} imageName={uploadedImageName} patient_id={patientData.id} onReset={() => { setReport(null); setFile(null); setPreview(null); }} /></div>;
+     return <div className="animate-fade-in"><ReportViewer report={report} patient={patientData} imageName={uploadedImageName} preview={preview} patient_id={patientData.id} onReset={() => { setReport(null); setFile(null); setPreview(null); }} /></div>;
   }
 
   return (
     <div className="animate-fade-in scanner-container hide-on-print">
       
-      {/* Smart Datalists for Combobox behavior */}
       <datalist id="doctor-list">
         {metaDocs.map((doc, idx) => <option key={idx} value={doc} />)}
       </datalist>
@@ -129,7 +128,7 @@ export default function Scanner() {
                  <input type="text" list="patient-list" name="name" value={form.name} onChange={handlePatientSelect} placeholder="Search existing patient or type new..." />
               </div>
               <div className="input-group"><label>Age</label><input type="number" name="age" value={form.age} onChange={handleChange} placeholder="e.g. 45" /></div>
-              <div className="input-group"><label>Biological Gender</label><select name="gender" value={form.gender} onChange={handleChange}><option>Male</option><option>Female</option><option>Other</option></select></div>
+              <div className="input-group"><label>Biological Gender</label><select name="gender" value={form.gender} onChange={handleChange}><option value="Male" style={{ color: '#000' }}>Male</option><option value="Female" style={{ color: '#000' }}>Female</option><option value="Other" style={{ color: '#000' }}>Other</option></select></div>
               <div className="input-group"><label>Ordering Doctor</label><input type="text" list="doctor-list" name="doctor" value={form.doctor} onChange={handleChange} placeholder="Search or type new doctor..." /></div>
            </div>
 

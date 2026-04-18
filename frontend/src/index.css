@@ -12,6 +12,20 @@
   --border-color: rgba(255, 255, 255, 0.08);
 }
 
+:root[data-theme='light'] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f3f4f6;
+  --bg-glass: rgba(255, 255, 255, 0.7);
+  --accent-cyan: #00bcd4;
+  --accent-purple: #7e57c2;
+  --accent-gradient: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --danger: #ef4444;
+  --success: #10b981;
+  --border-color: rgba(0, 0, 0, 0.1);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -25,7 +39,17 @@ body {
   color: var(--text-primary);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+:root[data-theme='light'] body {
+  background-image: radial-gradient(ellipse at top, #e5e7eb 0%, var(--bg-primary), 70%);
+}
+
+.doc-name{
+  color: var(--text-primary);  
+}
+
 
 button {
   cursor: pointer;
@@ -59,6 +83,9 @@ button {
   display: flex;
   flex-direction: column;
   gap: 32px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
 }
 
 .sidebar .logo {

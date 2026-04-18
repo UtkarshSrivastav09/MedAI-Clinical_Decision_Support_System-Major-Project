@@ -7,7 +7,8 @@ export default function Triage() {
   const [loading, setLoading] = useState(true);
 
   const fetchPatients = () => {
-    fetch('http://127.0.0.1:8000/api/patients')
+    const org = sessionStorage.getItem("organization") || "Med-AI Global";
+    fetch(`http://127.0.0.1:8000/api/patients?org=${encodeURIComponent(org)}`)
       .then(res => res.json())
       .then(data => {
         setPatients(data);

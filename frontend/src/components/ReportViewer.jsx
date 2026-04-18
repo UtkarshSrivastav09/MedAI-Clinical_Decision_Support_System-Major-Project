@@ -2,10 +2,18 @@ import React, { useState } from 'react';
 import { FileText, HeartPulse, ActivitySquare, TestTube, Stethoscope, Download, ShieldAlert, Zap, Info, ArrowLeft, Clock, MessageSquare, Send, CheckCircle2 } from 'lucide-react';
 import './ReportViewer.css';
 
-export default function ReportViewer({ report, patient, imageName, patient_id, onReset }) {
+export default function ReportViewer({ report, patient, imageName, preview, patient_id, onReset }) {
   const [chatQ, setChatQ] = useState("");
   const [chatLog, setChatLog] = useState([]);
   const [chatLoading, setChatLoading] = useState(false);
+  const [heatmapActive, setHeatmapActive] = useState(false);
+
+  const suggestionPills = [
+    "Typical recovery timeline?",
+    "Next diagnostic steps?",
+    "Potential complications?",
+    "Explain Technical Findings"
+  ];
 
   const [overrideText, setOverrideText] = useState("");
   const [overrideSaved, setOverrideSaved] = useState(false);
@@ -78,6 +86,14 @@ export default function ReportViewer({ report, patient, imageName, patient_id, o
                  {chatLoading && <div style={{color:'var(--accent-cyan)'}}>Analyzing Image Frame...</div>}
               </div>
               
+              <div style={{display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap'}}>
+                 {suggestionPills.map((pill, i) => (
+                    <button key={i} onClick={() => { setChatQ(pill); }} style={{background: 'rgba(0, 229, 255, 0.1)', border: '1px solid rgba(0, 229, 255, 0.3)', color: 'var(--accent-cyan)', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '20px', cursor: 'pointer', transition: 'all 0.2s'}} onMouseOver={e => e.target.style.background='rgba(0, 229, 255, 0.2)'} onMouseOut={e => e.target.style.background='rgba(0, 229, 255, 0.1)'}>
+                       {pill}
+                    </button>
+                 ))}
+              </div>
+
               <div style={{display: 'flex', gap: '8px'}}>
                  <input type="text" value={chatQ} onChange={e => setChatQ(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleChat()} placeholder="Ask 'Is the fracture spiral via right axis?'" style={{flex:1, padding: '8px 12px', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', color: '#fff', borderRadius: '6px'}} />
                  <button onClick={handleChat} disabled={chatLoading} style={{background: 'var(--accent-cyan)', color: '#000', border: 'none', padding: '0 12px', borderRadius: '6px', cursor: 'pointer'}}><Send size={16}/></button>
@@ -119,16 +135,45 @@ export default function ReportViewer({ report, patient, imageName, patient_id, o
         </div>
 
         {/* CLINICAL VIEW ONLY (Hidden on print) */}
-        <div className="report-body hide-on-print">
-            <div className="meta-stats">
-              <div className={`meta-badge severity-${clinical.severity || 'Low'}`}><ShieldAlert size={16} /> Severity: {clinical.severity || 'Low'}</div>
-              <div className="meta-badge confidence-badge"><Zap size={16} /> Confidence: {clinical.confidence_score}%</div>
+        <div className="report-body hide-on-print" style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px'}}>
+            <div className="report-image-section">
+                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px'}}>
+                  <h3 className="section-title" style={{margin: 0}}><ActivitySquare size={18} /> Radiography Analysis</h3>
+                  <button 
+                    onClick={() => setHeatmapActive(!heatmapActive)}
+                    className={`heatmap-toggle ${heatmapActive ? 'active' : ''}`}
+                  >
+                    <Zap size={14} /> {heatmapActive ? 'Disable AI Heatmap' : 'Enable AI Heatmap'}
+                  </button>
+                </div>
+                <div className="radiology-frame">
+                  <img src={preview} alt="Patient X-ray" className="analyzed-image" />
+                  {heatmapActive && (
+                    <div className="heatmap-overlay">
+                      {/* Simulating hotpots based on findings */}
+                      <div className="pulse-ring ring-1"></div>
+                      <div className="pulse-ring ring-2"></div>
+                      <div className="scan-line"></div>
+                    </div>
+                  )}
+                </div>
             </div>
-            <div className="report-section">
-              <h3 className="section-title"><HeartPulse size={18} /> Radiologist Technical Diagnoses</h3>
-              <ul className="disease-list">{clinical.diseases?.map((d, i) => <li key={i} className="disease-item danger-badge">{d}</li>)}</ul>
-              <p className="report-text" style={{marginTop:'12px'}}>{clinical.key_findings}</p>
-              {clinical.differential_diagnosis && <p className="report-text" style={{marginTop:'8px', color:'var(--accent-cyan)'}}>Differential: {clinical.differential_diagnosis}</p>}
+
+            <div className="report-text-section">
+              <div className="meta-stats" style={{marginBottom: '20px'}}>
+                <div className={`meta-badge severity-${clinical.severity || 'Low'}`}><ShieldAlert size={16} /> Severity: {clinical.severity || 'Low'}</div>
+                <div className="meta-badge confidence-badge"><Zap size={16} /> Confidence: {clinical.confidence_score}%</div>
+              </div>
+              <div className="report-section">
+                <h3 className="section-title"><HeartPulse size={18} /> Technical Diagnoses</h3>
+                <ul className="disease-list">{clinical.diseases?.map((d, i) => <li key={i} className="disease-item danger-badge">{d}</li>)}</ul>
+                <p className="report-text" style={{marginTop:'12px'}}>{clinical.key_findings}</p>
+                {clinical.differential_diagnosis && <p className="report-text" style={{marginTop:'8px', color:'var(--accent-cyan)'}}>Differential: {clinical.differential_diagnosis}</p>}
+                <div style={{marginTop: '20px', padding: '12px', background: 'rgba(163, 113, 247, 0.05)', borderRadius: '8px', border: '1px solid rgba(163, 113, 247, 0.2)'}}>
+                   <strong style={{fontSize: '0.85rem', color: 'var(--accent-purple)', display: 'block', marginBottom: '4px'}}>Recommended Physical Exam:</strong>
+                   <span style={{fontSize: '0.85rem', color: 'var(--text-secondary)'}}>{clinical.recommended_followup || 'Standard radiological follow-up as per institutional protocol.'}</span>
+                </div>
+              </div>
             </div>
         </div>
 

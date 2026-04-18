@@ -1,28 +1,14 @@
 import sqlite3
-import json
-from datetime import datetime, timedelta
 import random
+from datetime import datetime
+import json
 
-DB_FILE = "pathology.db"
-
-docs = ["Dr. Gregory House", "Dr. Meredith Grey", "Dr. John Dorian", "Dr. Stephen Strange", "Dr. Allison Cameron"]
-depts = ["Pulmonology", "Cardiology", "Orthopedics", "Oncology", "General/Primary"]
-
-dummy_patients = [
-    {"name": "Arthur Pendelton", "age": 68, "gender": "Male", "bp": "145/90", "temp": "101.4 F", "sym": "Severe dry cough, chest tightness", "phone": "555-010-8432", "email": "arthur.p@autopath.mock", "dis": ["Multifocal Pneumonia"], "sev": "High", "time": 2405, "tr": "Doctor Review"},
-    {"name": "Samantha Lewis", "age": 24, "gender": "Female", "bp": "110/70", "temp": "98.6 F", "sym": "Fell off bicycle, wrist pain", "phone": "555-234-9912", "email": "sam.lewis@autopath.mock", "dis": ["Distal Radius Fracture"], "sev": "Medium", "time": 1800, "tr": "Waiting Room"},
-    {"name": "David Wallace", "age": 55, "gender": "Male", "bp": "160/100", "temp": "99.1 F", "sym": "Shortness of breath walking up stairs", "phone": "555-943-2211", "email": "d.wallace@autopath.mock", "dis": ["Cardiomegaly", "Pulmonary Edema"], "sev": "Critical", "time": 3200, "tr": "Waiting Room"},
-    {"name": "Chloe Vance", "age": 31, "gender": "Female", "bp": "120/80", "temp": "98.4 F", "sym": "Routine physical checkup", "phone": "555-442-9011", "email": "chloe.v@autopath.mock", "dis": [], "sev": "Low", "time": 1205, "tr": "Discharged"},
-    {"name": "Marcus Johnson", "age": 42, "gender": "Male", "bp": "135/85", "temp": "100.2 F", "sym": "Persistent productive cough, fatigue", "phone": "555-772-1044", "email": "marcus.j@autopath.mock", "dis": ["Lower Lobe Consolidation"], "sev": "Medium", "time": 2100, "tr": "Doctor Review"},
-    {"name": "Eleanor Rigby", "age": 81, "gender": "Female", "bp": "105/65", "temp": "97.8 F", "sym": "Hip pain after slip in bathroom", "phone": "555-882-3301", "email": "erigby@autopath.mock", "dis": ["Femoral Neck Fracture"], "sev": "High", "time": 2850, "tr": "Waiting Room"},
-    {"name": "Tyler Durden", "age": 36, "gender": "Male", "bp": "125/82", "temp": "98.9 F", "sym": "Sharp rib pain when breathing deeply", "phone": "555-103-9999", "email": "tdurden@autopath.mock", "dis": ["Rib Contusion", "Minimal Pneumothorax"], "sev": "High", "time": 4100, "tr": "Doctor Review"}
-]
-
-conn = sqlite3.connect(DB_FILE)
+conn = sqlite3.connect("pathology.db")
 cursor = conn.cursor()
 
-# Nuke database and rebuild with new Phone/Email schema
-cursor.execute('DROP TABLE IF EXISTS patients')
+# Drop existing to wipe clean for the demo
+cursor.execute("DROP TABLE IF EXISTS patients")
+
 cursor.execute('''
     CREATE TABLE IF NOT EXISTS patients (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -42,41 +28,44 @@ cursor.execute('''
         triage_status TEXT, 
         human_override_note TEXT,
         phone TEXT,
-        email TEXT
+        email TEXT,
+        organization TEXT DEFAULT 'Med-AI Global'
     )
 ''')
 
-for p in dummy_patients:
-    scan_date = (datetime.now() - timedelta(hours=random.randint(1, 72))).isoformat()
-    requires_followup = 1 if p["sev"] in ["High", "Critical"] else 0
-    
+docs = ["Dr. Harish", "Dr. Puneet", "Dr. Manisha", "Dr. Sundeep", "Dr. Naveen"]
+depts = ["Cardiology", "Pulmonology", "Orthopedics", "General", "Oncology"]
+
+mock_patients = [
+    {"name": "Aarti Shukla", "age": 45, "gender": "Female", "bp": "120/80", "temp": "98.6", "sym": "Mild chest pain", "time": 1200, "tr": "Discharged", "phone": "(555) 123-4567", "email": "alice@example.com"},
+    {"name": "Ramesh Gupta", "age": 62, "gender": "Male", "bp": "140/90", "temp": "99.1", "sym": "Shortness of breath, severe cough", "time": 3500, "tr": "Doctor Review", "phone": "(555) 987-6543", "email": "bob.j@example.com"},
+    {"name": "Monika Patel", "age": 28, "gender": "Female", "bp": "110/70", "temp": "98.2", "sym": "Routine checkup", "time": 800, "tr": "Waiting Room", "phone": "N/A", "email": "cwoods@gmail.com"},
+    {"name": "David Sharma", "age": 55, "gender": "Male", "bp": "150/95", "temp": "100.4", "sym": "Persistent fever, wheezing", "time": 4200, "tr": "Doctor Review", "phone": "206-555-0192", "email": "dmiller@work.net"},
+    {"name": "Navya Sharma", "age": 71, "gender": "Female", "bp": "135/85", "temp": "98.8", "sym": "Joint pain", "time": 1500, "tr": "Discharged", "phone": "N/A", "email": "eva71@aol.com"},
+    {"name": "Krishna Yadav", "age": 34, "gender": "Male", "bp": "125/82", "temp": "98.6", "sym": "Back ache after fall", "time": 1100, "tr": "Waiting Room", "phone": "555-010-0101", "email": "frankw@example.com"},
+    {"name": "Priya Vishwakarma", "age": 49, "gender": "Female", "bp": "130/80", "temp": "99.5", "sym": "Heart palpitations", "time": 2800, "tr": "Waiting Room", "phone": "(111) 222-3333", "email": "glee@company.co"}
+]
+
+for p in mock_patients:
+    scan_date = datetime.now().isoformat()
+    requires_followup = p["time"] > 2000
     mock_report = {
         "clinical_assessment": {
-            "diseases": p["dis"],
-            "severity": p["sev"],
-            "confidence_score": random.randint(85, 99),
-            "key_findings": "Mocked technical clinical findings generated by AI seeder script.",
-            "differential_diagnosis": "Consider secondary mocked etiology."
-        },
-        "patient_layman_assessment": {
-            "layman_diseases": p["dis"],
-            "layman_findings": "Mocked simple findings.",
-            "layman_summary": "Mocked patient summary from AI.",
-            "treatment_timeline": [{"phase": "Immediate", "action": "Follow medical advice."}]
-        },
-        "referrals": "Mocked Department Referral."
+            "diseases": ["Pneumonia", "Cardiomegaly"] if requires_followup else ["Healthy"],
+            "severity": "High" if requires_followup else "Low"
+        }
     }
     
     cursor.execute('''
-        INSERT INTO patients (scan_date, patient_name, age, gender, blood_pressure, temperature, symptoms, referring_doctor, image_name, report_json, requires_followup, processing_time_ms, department, triage_status, human_override_note, phone, email)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO patients (scan_date, patient_name, age, gender, blood_pressure, temperature, symptoms, referring_doctor, image_name, report_json, requires_followup, processing_time_ms, department, triage_status, human_override_note, phone, email, organization)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         scan_date, p["name"], p["age"], p["gender"], p["bp"], p["temp"], p["sym"],
         random.choice(docs), "mock_image.jpg", json.dumps(mock_report),
         requires_followup, p["time"], random.choice(depts), p["tr"], "",
-        p["phone"], p["email"]
+        p["phone"], p["email"], "Med-AI Global"
     ))
 
 conn.commit()
 conn.close()
-print("7 Realistic Deep-Mock Patients + Phone/Email Contact logic brilliantly seeded!")
+print("Initialized Pathology Database with V5 Deep Mock Data Architecture successfully!")

@@ -1,4 +1,4 @@
-# AI Pathology Laboratory - Current Feature Manifest
+# Med-AI Clinical  Laboratory - Current Feature Manifest
 
 *This document serves as the official presentation outline. It contains all active, correctly integrated features currently running in the platform.*
 

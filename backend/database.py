@@ -1,9 +1,13 @@
 import sqlite3
 import os
 import json
+import hashlib
 from datetime import datetime
 
 DB_FILE = "pathology.db"
+
+def hash_password(password: str) -> str:
+    return hashlib.sha256(password.encode()).hexdigest()
 
 def init_db():
     conn = sqlite3.connect(DB_FILE)
@@ -27,13 +31,62 @@ def init_db():
             triage_status TEXT, 
             human_override_note TEXT,
             phone TEXT,
-            email TEXT
+            email TEXT,
+            organization TEXT DEFAULT 'Med-AI Global'
         )
     ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE,
+            email TEXT UNIQUE,
+            password_hash TEXT,
+            created_at TEXT,
+            organization TEXT DEFAULT 'Med-AI Global'
+        )
+    ''')
+    
+    try:
+        cursor.execute("ALTER TABLE patients ADD COLUMN organization TEXT DEFAULT 'Med-AI Global'")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        cursor.execute("ALTER TABLE users ADD COLUMN organization TEXT DEFAULT 'Med-AI Global'")
+    except sqlite3.OperationalError:
+        pass
+
     conn.commit()
     conn.close()
+    
+    try:
+        register_user("admin", "admin@hospital.org", "1234", "Med-AI Global")
+    except Exception:
+        pass
 
-def log_patient(patient_data: dict, image_name: str, report: dict, processing_time: int):
+def register_user(username: str, email: str, password: str, organization: str) -> bool:
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    try:
+        cursor.execute("INSERT INTO users (username, email, password_hash, created_at, organization) VALUES (?, ?, ?, ?, ?)",
+                       (username, email, hash_password(password), datetime.now().isoformat(), organization))
+        conn.commit()
+        return True
+    except sqlite3.IntegrityError:
+        return False
+    finally:
+        conn.close()
+
+def verify_user(username: str, password: str):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, password_hash, organization FROM users WHERE username = ?", (username,))
+    row = cursor.fetchone()
+    conn.close()
+    if row and row[1] == hash_password(password):
+        return {"id": row[0], "organization": row[2]}
+    return None
+
+def log_patient(patient_data: dict, image_name: str, report: dict, processing_time: int, organization: str):
     clinical = report.get("clinical_assessment", {})
     severity = clinical.get("severity", "Low")
     requires_followup = True if severity in ["High", "Critical"] else False
@@ -48,8 +101,8 @@ def log_patient(patient_data: dict, image_name: str, report: dict, processing_ti
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO patients (scan_date, patient_name, age, gender, blood_pressure, temperature, symptoms, referring_doctor, image_name, report_json, requires_followup, processing_time_ms, department, triage_status, human_override_note, phone, email)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO patients (scan_date, patient_name, age, gender, blood_pressure, temperature, symptoms, referring_doctor, image_name, report_json, requires_followup, processing_time_ms, department, triage_status, human_override_note, phone, email, organization)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         datetime.now().isoformat(),
         patient_data.get('name', 'Unknown'),
@@ -67,22 +120,23 @@ def log_patient(patient_data: dict, image_name: str, report: dict, processing_ti
         "Waiting Room",
         "",
         patient_data.get('phone', 'N/A'),
-        patient_data.get('email', 'N/A')
+        patient_data.get('email', 'N/A'),
+        organization
     ))
     pid = cursor.lastrowid
     conn.commit()
     conn.close()
     return pid
 
-def get_dashboard_stats():
+def get_dashboard_stats(organization: str):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    cursor.execute('SELECT COUNT(*) FROM patients')
+    cursor.execute('SELECT COUNT(*) FROM patients WHERE organization = ?', (organization,))
     total_scans = cursor.fetchone()[0]
-    cursor.execute('SELECT scan_date, patient_name, image_name, report_json, requires_followup FROM patients ORDER BY id DESC LIMIT 5')
+    cursor.execute('SELECT scan_date, patient_name, image_name, report_json, requires_followup FROM patients WHERE organization = ? ORDER BY id DESC LIMIT 5', (organization,))
     recent_rows = cursor.fetchall()
     
-    cursor.execute('SELECT scan_date, patient_name, report_json FROM patients WHERE requires_followup = 1 AND triage_status != "Discharged" ORDER BY id DESC LIMIT 5')
+    cursor.execute('SELECT scan_date, patient_name, report_json FROM patients WHERE requires_followup = 1 AND triage_status != "Discharged" AND organization = ? ORDER BY id DESC LIMIT 5', (organization,))
     alert_rows = cursor.fetchall()
     critical_alerts = []
     for a in alert_rows:
@@ -91,13 +145,13 @@ def get_dashboard_stats():
            critical_alerts.append({"date": a[0], "patient": a[1], "issue": disease})
        except: pass
 
-    cursor.execute('SELECT referring_doctor, COUNT(*) as c FROM patients GROUP BY referring_doctor ORDER BY c DESC LIMIT 3')
+    cursor.execute('SELECT referring_doctor, COUNT(*) as c FROM patients WHERE organization = ? GROUP BY referring_doctor ORDER BY c DESC LIMIT 3', (organization,))
     doctors = [{"name": row[0], "count": row[1]} for row in cursor.fetchall()]
 
-    cursor.execute('SELECT department, COUNT(*) as c FROM patients GROUP BY department ORDER BY c DESC LIMIT 4')
+    cursor.execute('SELECT department, COUNT(*) as c FROM patients WHERE organization = ? GROUP BY department ORDER BY c DESC LIMIT 4', (organization,))
     departments = [{"dept": row[0], "count": row[1]} for row in cursor.fetchall()]
 
-    cursor.execute('SELECT AVG(processing_time_ms) FROM patients')
+    cursor.execute('SELECT AVG(processing_time_ms) FROM patients WHERE organization = ?', (organization,))
     avg_proc = cursor.fetchone()[0]
     avg_time_ms = int(avg_proc) if avg_proc else 0
 
@@ -113,21 +167,25 @@ def get_dashboard_stats():
             })
         except: pass
             
-    cursor.execute('SELECT COUNT(*) FROM patients WHERE requires_followup = 1')
+    cursor.execute('SELECT COUNT(*) FROM patients WHERE requires_followup = 1 AND organization = ?', (organization,))
     total_severe = cursor.fetchone()[0]
+    
+    cursor.execute('SELECT username, email FROM users WHERE organization = ? ORDER BY id DESC', (organization,))
+    org_users = [{"username": row[0], "email": row[1]} for row in cursor.fetchall()]
+    
     conn.commit()
     conn.close()
     
     return {
         "total_scans": total_scans, "total_severe": total_severe, "total_healthy": total_scans - total_severe,
         "avg_processing_time_ms": avg_time_ms, "top_doctors": doctors, "departments": departments, "critical_alerts": critical_alerts,
-        "recent_scans": recent_scans, "total_diseases_detected": total_diseases
+        "recent_scans": recent_scans, "total_diseases_detected": total_diseases, "org_users": org_users
     }
 
-def get_all_patients():
+def get_all_patients(organization: str):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    cursor.execute('SELECT id, scan_date, patient_name, age, gender, symptoms, report_json, requires_followup, department, referring_doctor, triage_status, human_override_note, phone, email FROM patients ORDER BY id DESC')
+    cursor.execute('SELECT id, scan_date, patient_name, age, gender, symptoms, report_json, requires_followup, department, referring_doctor, triage_status, human_override_note, phone, email FROM patients WHERE organization = ? ORDER BY id DESC', (organization,))
     rows = cursor.fetchall()
     conn.close()
     result = []
@@ -145,13 +203,13 @@ def get_all_patients():
         except: pass
     return result
 
-def get_scanner_meta():
+def get_scanner_meta(organization: str):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    cursor.execute('SELECT DISTINCT referring_doctor FROM patients')
+    cursor.execute('SELECT DISTINCT referring_doctor FROM patients WHERE organization = ?', (organization,))
     docs = [r[0] for r in cursor.fetchall()]
     
-    cursor.execute('SELECT MAX(id), patient_name, age, gender, blood_pressure, temperature, phone, email FROM patients GROUP BY patient_name')
+    cursor.execute('SELECT MAX(id), patient_name, age, gender, blood_pressure, temperature, phone, email FROM patients WHERE organization = ? GROUP BY patient_name', (organization,))
     pts = [{"name": r[1], "age": r[2], "gender": r[3], "bloodPressure": r[4], "temperature": r[5], "phone": r[6], "email": r[7]} for r in cursor.fetchall()]
     conn.close()
     return {"doctors": docs, "patients": pts}
@@ -170,10 +228,10 @@ def update_human_override(patient_id: int, note: str):
     conn.commit()
     conn.close()
 
-def get_past_history(patient_name: str):
+def get_past_history(patient_name: str, organization: str):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    cursor.execute('SELECT report_json FROM patients WHERE patient_name = ? ORDER BY id DESC LIMIT 1', (patient_name,))
+    cursor.execute('SELECT report_json FROM patients WHERE patient_name = ? AND organization = ? ORDER BY id DESC LIMIT 1', (patient_name, organization))
     row = cursor.fetchone()
     conn.close()
     if row:

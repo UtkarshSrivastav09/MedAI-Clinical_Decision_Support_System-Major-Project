@@ -111,3 +111,24 @@
   background: rgba(0, 230, 118, 0.1);
   color: var(--success);
 }
+
+.chart-card {
+  display: flex !important;
+  flex-direction: column;
+  min-height: 380px;
+}
+
+.chart-wrapper {
+  flex: 1;
+  margin-top: 16px;
+  min-height: 250px;
+  width: 100%;
+}
+
+.recharts-legend-item-text {
+  color: var(--text-primary) !important;
+}
+
+.custom-tooltip {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
