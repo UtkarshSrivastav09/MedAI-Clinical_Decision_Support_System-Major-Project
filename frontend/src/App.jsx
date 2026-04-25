@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
-import { Stethoscope, Activity, Database, LayoutDashboard, Layers, LogOut } from 'lucide-react';
+import { Stethoscope, Activity, Database, LayoutDashboard, Layers, LogOut, Video } from 'lucide-react';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Scanner from './pages/Scanner';
 import PatientDatabase from './pages/PatientDatabase';
 import Dashboard from './pages/Dashboard';
 import Triage from './pages/Triage';
+import Consult from './pages/Consult';
+import Preloader from './components/Preloader';
 import "./index.css";
-import './App.css';
+import "./App.css";
 
 function NavLinks({ setAuth }) {
   const location = useLocation();
@@ -27,6 +29,7 @@ function NavLinks({ setAuth }) {
       </div>
       <div className="nav-links">
         <Link to="/" className={`nav-item ${isActive('/')}`}><LayoutDashboard size={18} /> Admin Dashboard</Link>
+        <Link to="/consult" className={`nav-item ${isActive('/consult')}`}><Video size={18} /> AI TeleConsult</Link>
         <Link to="/scanner" className={`nav-item ${isActive('/scanner')}`}><Activity size={18} /> Analyze X-Ray</Link>
         <Link to="/triage" className={`nav-item ${isActive('/triage')}`}><Layers size={18} /> Clinical Workflow</Link>
         <Link to="/database" className={`nav-item ${isActive('/database')}`}><Database size={18} /> Patient Records</Link>
@@ -40,19 +43,29 @@ function NavLinks({ setAuth }) {
   );
 }
 
-// Wrapper component to handle location-based logic
 function AppContent() {
+  const [isAppLoading, setIsAppLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return sessionStorage.getItem("isAuthenticated") === "true";
   });
   const location = useLocation();
 
+  useEffect(() => {
+    // Simulate initial heavy loading for the neural core
+    const timer = setTimeout(() => {
+      setIsAppLoading(false);
+    }, 2800); // 2.8 seconds loader
+    return () => clearTimeout(timer);
+  }, []);
+
   // Determine if the current page is an authentication page
   const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
 
   return (
-    <div className="app-container">
-      {/* Sidebar only shows if authenticated AND not on login/signup pages */}
+    <>
+      {isAppLoading && <Preloader />}
+      <div className="app-container" style={{ display: isAppLoading ? 'none' : 'flex' }}>
+        {/* Sidebar only shows if authenticated AND not on login/signup pages */}
       {!isAuthPage && isAuthenticated && <NavLinks setAuth={setIsAuthenticated} />}
 
       <main className={isAuthPage ? "auth-main" : "main-content"}>
@@ -63,6 +76,7 @@ function AppContent() {
 
           {/* Protected Routes - Redirect to Login if not authenticated */}
           <Route path="/" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} />
+          <Route path="/consult" element={isAuthenticated ? <Consult /> : <Navigate to="/login" />} />
           <Route path="/scanner" element={isAuthenticated ? <Scanner /> : <Navigate to="/login" />} />
           <Route path="/triage" element={isAuthenticated ? <Triage /> : <Navigate to="/login" />} />
           <Route path="/database" element={isAuthenticated ? <PatientDatabase /> : <Navigate to="/login" />} />
@@ -72,6 +86,7 @@ function AppContent() {
         </Routes>
       </main>
     </div>
+    </>
   );
 }
 

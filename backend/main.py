@@ -4,9 +4,10 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from database import init_db, log_patient, get_dashboard_stats, get_all_patients, get_scanner_meta, update_triage, update_human_override, get_past_history, register_user, verify_user
-from ai_service import analyze_xray, chat_interrogate_xray
+from ai_service import analyze_xray, chat_interrogate_xray, simulate_doctor_consult
 import shutil
 from pydantic import BaseModel
+from typing import List, Dict
 
 app = FastAPI(title="Med-AI Clinical Decision Support System API V6 Ultimate")
 
@@ -300,6 +301,15 @@ def override_update(payload: OverrideUpdate):
 @app.post("/api/chat")
 async def ai_chat(image_name: str = Form(...), question: str = Form(...)):
     ans = chat_interrogate_xray(image_name, question)
+    return {"answer": ans}
+
+class ConsultRequest(BaseModel):
+    history: List[Dict[str, str]]
+    message: str
+
+@app.post("/api/consult_chat")
+def consult_chat(payload: ConsultRequest):
+    ans = simulate_doctor_consult(payload.history, payload.message)
     return {"answer": ans}
 
 @app.post("/api/scan")

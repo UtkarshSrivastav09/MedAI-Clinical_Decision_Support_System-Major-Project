@@ -115,3 +115,39 @@ def chat_interrogate_xray(image_name: str, question: str) -> str:
         return response.text
     except Exception as e:
         return f"Error connecting to AI for chat: {str(e)}"
+
+def simulate_doctor_consult(history: list, latest_message: str) -> str:
+    if API_KEY == "LOCAL_TEST_MODE" or not API_KEY:
+        return f"Mock Virtual Doctor: I hear you saying '{latest_message}'. As an AI physician, I recommend we monitor this closely."
+        
+    try:
+        model = genai.GenerativeModel('gemini-flash-latest')
+        
+        system_prompt = """
+        You are Med-AI, an empathetic, highly intelligent Virtual Physician conducting a video telemedicine consultation.
+        The user is a patient describing their symptoms. 
+        Your goal is to:
+        1. Empathize and validate their feelings.
+        2. Ask 1-2 concise, highly relevant follow-up questions to narrow down the differential diagnosis.
+        3. Do NOT provide a final diagnosis immediately unless it's an absolute emergency, in which case you must advise them to call emergency services.
+        4. Keep your responses short, conversational, and suitable for Text-to-Speech (read aloud). Do not use markdown bullet points or asterisks, just natural spoken paragraphs.
+        """
+        
+        chat = model.start_chat(history=[])
+        
+        # We need to format the history for the gemini SDK if we had a complex history object, 
+        # but for simplicity, we can just send the system prompt + conversation history as a single text block
+        # since we want to enforce the system prompt heavily on every turn.
+        
+        conversation_context = system_prompt + "\n\nPast Conversation:\n"
+        for msg in history:
+            role = "Patient" if msg['role'] == 'user' else "AI Doctor"
+            conversation_context += f"{role}: {msg['content']}\n"
+            
+        conversation_context += f"\nPatient: {latest_message}\nAI Doctor:"
+        
+        response = model.generate_content(conversation_context)
+        return response.text.replace("*", "").strip() # Remove asterisks so TTS reads it better
+    except Exception as e:
+        return f"Error connecting to Virtual Doctor: {str(e)}"
+

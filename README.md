@@ -11,29 +11,48 @@ An industrial-grade, full-stack Clinical Decision Support System (CDSS) designed
 
 ## 🏗️ System Architecture
 
+<<<<<<< HEAD
+=======
+```mermaid
+graph TD
+    A[Scanner UI] -->|Vitals + X-Ray| B[FastAPI Backend]
+    B -->|Preprocessing| C{AI Engine}
+    C -->|Gemini Flash| D[Vision Pathology Analysis]
+    C -->|Longitudinal Check| E[Historical Comparison]
+    D & E --> F[Structured JSON Report]
+    F --> G[(SQLite Database)]
+    F --> H[Admin Dashboard]
+    F --> I[Radiologist Triage Board]
+    I -->|PDF Export| J[Patient Layman Report]
+    K[AI TeleConsult] -->|Live Interaction| B
+    B -->|Voice Response| K
+```
+
+>>>>>>> 118f938 (README update by Utkarsh)
 ## 🌟 Key Features
 
-### 1. **Advanced AI Intelligence**
+### 1. **Next-Gen Telemedicine: AI TeleConsult**
+*   **Virtual Physician Interface**: A high-end video consultation portal featuring real-time Picture-in-Picture (PiP) patient webcam integration.
+*   **AI Voice Synthesis**: Integrated text-to-speech (TTS) engine that allows the AI to "speak" to patients with empathetic, professional medical guidance.
+*   **Live Interactive Visualizers**: Features dynamic CSS-based audio equalizers and pulsing neural auras that react in real-time as the AI communicates.
+*   **Encrypted Chat Logs**: Seamless hybrid interface combining video with a secure, real-time diagnostic transcript.
+
+### 2. **Advanced AI Intelligence**
 *   **Vision & Pathology Extraction**: High-accuracy detection of lung fractures, viral pneumonitis, cardiomegaly, effusions, and more via the Gemini-Vision pipeline.
 *   **Dual-Role Persona Engine**: Automatically branches diagnostic output into two distinct perspectives:
     *   **Clinical (The Radiologist)**: High-level technical terminology for professional verification.
     *   **Patient (The Layman)**: Simplified, compassionate explanations with actionable follow-up steps.
 *   **Contextual Co-Pilot Chat**: Integrated interactive LLM window on reports for specific radiologist inquiries regarding the scan.
 
-### 2. **Clinical Safeguards & EHR Correlation**
+### 3. **Clinical Safeguards & EHR Correlation**
 *   **Vitals Correlator**: Dynamically cross-references visual pathologies with patient vitals (Temperature, BP, Symptoms) to reduce false positives.
 *   **Sanity-Check Safeguards**: Automatically identifies medically impossible inputs (e.g., zero temperature) and flags critical monitoring errors or shock states.
 *   **Longitudinal Progression**: The system natively detects returning patients and forces the AI to perform a comparative analysis (Improved vs. Worsened) against previous scans.
 
-### 3. **Hospital Operations Command Center**
+### 4. **Hospital Operations Command Center**
 *   **Administrative Telemetry**: Real-time dashboard tracking scan volume, average token latency, and department "Burden Graphs."
 *   **Critical Priority Inbox**: A dedicated high-risk triage feed that isolates life-threatening cases for immediate intervention.
-*   **Physician Ranking**: Automated leaderboards tracking which internal clinicians are utilizing the system most frequently.
-
-### 4. **Workflow Automation**
-*   **Kanban Triage System**: A visual patient management board for routing cases through `Waiting Room`, `Under Review`, and `Discharged` queues.
-*   **Zero-Loss Persistence**: Built on a normalized SQLite architecture ensuring zero-config database portability across any machine.
-*   **Native PDF & CSV Export**: Generate clinical-grade letterhead reports for patients and Microsoft Excel-compatible clinical data exports for offline research.
+*   **Premium Design Aesthetic**: Fully responsive, glassmorphic UI featuring a brand-new **Global Preloader** and dynamic **Dark/Light Mode** support tailored for clinical environments.
 
 ---
 
@@ -113,11 +132,12 @@ An industrial-grade, full-stack Clinical Decision Support System (CDSS) designed
 This system was architected and developed as a **Major Final Year Project**, driven by a passion for merging **Artificial Intelligence** with **Healthcare**. The vision behind Med-AI was to move beyond simple image classification and create a true **Clinical Decision Support System** that understands the nuances of patient history, vitals, and long-term health progression.
 
 ### 🎯 My Contribution
-As the primary developer, I engineered the entire pipeline from the ground up:
-*   **AI Architecture**: Designing the Gemini-based multi-modal correlation engine.
-- **Backend Engineering**: Implementing the persistent EHR SQLite architecture and organization-based multi-tenancy.
-- **Frontend Design**: Crafting the glassmorphic, clinical-grade UI and real-time dashboard analytics.
-- **Medical Logic**: Developing the "Longitudinal Tracking" algorithm to simulate real-world radiological comparison.
+As the lead developer, I engineered the entire Med-AI ecosystem to industry standards:
+*   **AI Vision Engine**: Designing the Gemini-based multi-modal pathology correlation pipeline.
+*   **Telemedicine Innovation**: Building the **AI TeleConsult** module with live video processing and voice synthesis.
+- **Backend Architecture**: Implementing the persistent EHR SQLite architecture and organization-based multi-tenancy.
+- **Frontend Design Excellence**: Crafting a premium, glassmorphic UI featuring a custom **Global Preloader** and dynamic **Theme Transitions**.
+- **Medical Logic**: Developing the "Longitudinal Tracking" algorithm to simulate real-world radiological history comparison.
 
 ### 🌐 Connect & Collaborate
 I am always open to discussing Medical AI, Full-Stack Engineering, or potential collaborations.
