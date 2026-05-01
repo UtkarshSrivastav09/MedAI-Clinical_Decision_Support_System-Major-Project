@@ -132,3 +132,90 @@
 .custom-tooltip {
   box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
+
+/* Personalized Username Styles */
+.user-welcome-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.welcome-text {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.username-highlight {
+  font-size: 2.8rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-purple) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  cursor: pointer;
+  position: relative;
+}
+
+.username-highlight:hover {
+  transform: scale(1.05) translateY(-2px);
+  filter: drop-shadow(0 0 10px rgba(0, 229, 255, 0.4));
+}
+
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(163, 113, 247, 0.1);
+  color: var(--accent-purple);
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid rgba(163, 113, 247, 0.2);
+  width: fit-content;
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column !important;
+    gap: 16px;
+  }
+  .page-header button {
+    align-self: flex-start !important;
+  }
+  .username-highlight {
+    font-size: 2rem;
+  }
+  .stats-row {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .stat-card {
+    padding: 16px;
+  }
+  .chart-card {
+    min-height: 300px;
+  }
+  .recent-scans-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .dashboard-container {
+    gap: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .username-highlight {
+    font-size: 1.8rem;
+  }
+}

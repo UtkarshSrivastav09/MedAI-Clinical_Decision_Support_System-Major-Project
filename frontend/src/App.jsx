@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
-import { Stethoscope, Activity, Database, LayoutDashboard, Layers, LogOut, Video } from 'lucide-react';
+import { Stethoscope, Activity, Database, LayoutDashboard, Layers, LogOut, Video, Menu, X } from 'lucide-react';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Scanner from './pages/Scanner';
@@ -12,7 +12,7 @@ import Preloader from './components/Preloader';
 import "./index.css";
 import "./App.css";
 
-function NavLinks({ setAuth }) {
+function NavLinks({ setAuth, isOpen, setIsOpen }) {
   const location = useLocation();
   const isActive = (path) => location.pathname === path ? 'active' : '';
 
@@ -21,25 +21,39 @@ function NavLinks({ setAuth }) {
     setAuth(false);
   };
 
+  const handleNavClick = () => {
+    if (window.innerWidth <= 900) {
+      setIsOpen(false);
+    }
+  };
+
   return (
-    <aside className="sidebar">
-      <div className="logo">
-        <Stethoscope color="var(--accent-cyan)" />
-        <h2>Med-AI Clinical</h2>
-      </div>
-      <div className="nav-links">
-        <Link to="/" className={`nav-item ${isActive('/')}`}><LayoutDashboard size={18} /> Admin Dashboard</Link>
-        <Link to="/consult" className={`nav-item ${isActive('/consult')}`}><Video size={18} /> AI TeleConsult</Link>
-        <Link to="/scanner" className={`nav-item ${isActive('/scanner')}`}><Activity size={18} /> Analyze X-Ray</Link>
-        <Link to="/triage" className={`nav-item ${isActive('/triage')}`}><Layers size={18} /> Clinical Workflow</Link>
-        <Link to="/database" className={`nav-item ${isActive('/database')}`}><Database size={18} /> Patient Records</Link>
-      </div>
-      <div style={{ marginTop: 'auto', paddingTop: '20px', borderTop: '1px solid var(--border-color)' }}>
-        <button onClick={handleLogout} className="nav-item" style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer', color: 'var(--danger)', background: 'rgba(255,82,82,0.05)' }}>
-          <LogOut size={18} /> Secure Logout
-        </button>
-      </div>
-    </aside>
+    <>
+      {isOpen && <div className="sidebar-overlay" onClick={() => setIsOpen(false)}></div>}
+      <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
+        <div className="logo" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <Stethoscope color="var(--accent-cyan)" />
+            <h2>Med-AI</h2>
+          </div>
+          <button className="mobile-close-btn" onClick={() => setIsOpen(false)}>
+            <X size={24} color="var(--text-primary)" />
+          </button>
+        </div>
+        <div className="nav-links">
+          <Link to="/" onClick={handleNavClick} className={`nav-item ${isActive('/')}`}><LayoutDashboard size={18} /> Admin Dashboard</Link>
+          <Link to="/consult" onClick={handleNavClick} className={`nav-item ${isActive('/consult')}`}><Video size={18} /> AI TeleConsult</Link>
+          <Link to="/scanner" onClick={handleNavClick} className={`nav-item ${isActive('/scanner')}`}><Activity size={18} /> Analyze X-Ray</Link>
+          <Link to="/triage" onClick={handleNavClick} className={`nav-item ${isActive('/triage')}`}><Layers size={18} /> Clinical Workflow</Link>
+          <Link to="/database" onClick={handleNavClick} className={`nav-item ${isActive('/database')}`}><Database size={18} /> Patient Records</Link>
+        </div>
+        <div style={{ marginTop: 'auto', paddingTop: '20px', borderTop: '1px solid var(--border-color)' }}>
+          <button onClick={handleLogout} className="nav-item" style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer', color: 'var(--danger)', background: 'rgba(255,82,82,0.05)' }}>
+            <LogOut size={18} /> Secure Logout
+          </button>
+        </div>
+      </aside>
+    </>
   );
 }
 
@@ -48,13 +62,14 @@ function AppContent() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return sessionStorage.getItem("isAuthenticated") === "true";
   });
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
     // Simulate initial heavy loading for the neural core
     const timer = setTimeout(() => {
       setIsAppLoading(false);
-    }, 2800); // 2.8 seconds loader
+    }, 1200); // 1.2 seconds loader
     return () => clearTimeout(timer);
   }, []);
 
@@ -66,9 +81,14 @@ function AppContent() {
       {isAppLoading && <Preloader />}
       <div className="app-container" style={{ display: isAppLoading ? 'none' : 'flex' }}>
         {/* Sidebar only shows if authenticated AND not on login/signup pages */}
-      {!isAuthPage && isAuthenticated && <NavLinks setAuth={setIsAuthenticated} />}
+      {!isAuthPage && isAuthenticated && <NavLinks setAuth={setIsAuthenticated} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />}
 
       <main className={isAuthPage ? "auth-main" : "main-content"}>
+        {!isAuthPage && isAuthenticated && (
+          <button className="mobile-menu-btn" onClick={() => setIsSidebarOpen(true)}>
+            <Menu size={24} />
+          </button>
+        )}
         <Routes>
           {/* Public Auth Routes */}
           <Route path="/login" element={!isAuthenticated ? <Login setAuth={setIsAuthenticated} /> : <Navigate to="/" />} />

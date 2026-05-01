@@ -6,6 +6,14 @@ from datetime import datetime
 
 DB_FILE = "pathology.db"
 
+HOSPITAL_STAFF = [
+    "Dr. Harish (Cardiology)",
+    "Dr. Puneet (Pulmonology)",
+    "Dr. Manisha (Orthopedics)",
+    "Dr. Sundeep (General)",
+    "Dr. Naveen (Oncology)"
+]
+
 def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
 
@@ -207,12 +215,16 @@ def get_scanner_meta(organization: str):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     cursor.execute('SELECT DISTINCT referring_doctor FROM patients WHERE organization = ?', (organization,))
-    docs = [r[0] for r in cursor.fetchall()]
+    existing_docs = [r[0] for r in cursor.fetchall()]
+    
+    # Merge existing doctors with our official hospital staff list, ensuring no duplicates
+    all_docs = list(set(HOSPITAL_STAFF + existing_docs))
+    all_docs.sort()
     
     cursor.execute('SELECT MAX(id), patient_name, age, gender, blood_pressure, temperature, phone, email FROM patients WHERE organization = ? GROUP BY patient_name', (organization,))
     pts = [{"name": r[1], "age": r[2], "gender": r[3], "bloodPressure": r[4], "temperature": r[5], "phone": r[6], "email": r[7]} for r in cursor.fetchall()]
     conn.close()
-    return {"doctors": docs, "patients": pts}
+    return {"doctors": all_docs, "patients": pts}
 
 def update_triage(patient_id: int, status: str):
     conn = sqlite3.connect(DB_FILE)
@@ -237,3 +249,10 @@ def get_past_history(patient_name: str, organization: str):
     if row:
         return row[0]
     return None
+
+def delete_patient(patient_id: int):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM patients WHERE id = ?', (patient_id,))
+    conn.commit()
+    conn.close()

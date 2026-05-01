@@ -170,13 +170,49 @@
   color: #fff;
 }
 
-.heatmap-overlay {
+.heatmap-overlay, .heatmap-overlay-v2 {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   pointer-events: none;
+}
+
+.ai-annotation-box {
+  position: absolute;
+  border: 2px solid var(--accent-cyan);
+  background: rgba(0, 229, 255, 0.15);
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.4), inset 0 0 10px rgba(0, 229, 255, 0.2);
+  border-radius: 4px;
+  pointer-events: auto;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.ai-annotation-box:hover {
+  background: rgba(0, 229, 255, 0.3);
+  border-width: 3px;
+  box-shadow: 0 0 25px rgba(0, 229, 255, 0.6);
+  z-index: 10;
+}
+
+.annotation-label {
+  position: absolute;
+  top: -24px;
+  left: -2px;
+  background: var(--accent-cyan);
+  color: #000;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 4px 4px 4px 0;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  text-transform: uppercase;
 }
 
 .pulse-ring {
@@ -229,4 +265,445 @@
   background: var(--border-color);
   border-radius: 10px;
 }
+
+/* Premium PDF Template Styles */
+#premium-report-template {
+  width: 800px;
+  padding: 40px;
+  background: #ffffff;
+  color: #1e293b;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  box-sizing: border-box;
+  position: absolute;
+  left: -9999px;
+  top: 0;
+}
+
+.pdf-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 3px solid #6366f1;
+  padding-bottom: 24px;
+  margin-bottom: 32px;
+}
+
+.pdf-logo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.pdf-branding {
+  display: flex;
+  flex-direction: column;
+}
+
+.pdf-logo-text {
+  font-family: 'Outfit', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  color: #1e293b;
+  line-height: 1;
+}
+
+.pdf-tagline {
+  font-size: 12px;
+  color: #6366f1;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.pdf-report-title {
+  text-align: right;
+}
+
+.pdf-report-title h1 {
+  font-size: 24px;
+  font-weight: 800;
+  margin: 0;
+  color: #1e293b;
+  text-transform: uppercase;
+  letter-spacing: -0.5px;
+}
+
+.pdf-report-title p {
+  font-size: 13px;
+  color: #64748b;
+  margin: 6px 0 0 0;
+}
+
+.pdf-patient-info {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  background: #f8fafc;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 32px;
+  border: 1px solid #e2e8f0;
+}
+
+.pdf-info-item span {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #64748b;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.pdf-info-item strong {
+  font-size: 15px;
+  color: #0f172a;
+}
+
+.pdf-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 32px;
+}
+
+.pdf-section {
+  margin-bottom: 28px;
+}
+
+.pdf-section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #4338ca;
+  margin-bottom: 14px;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pdf-layman-summary {
+  background: #fdf2ff;
+  padding: 20px;
+  border-radius: 12px;
+  border-left: 5px solid #a855f7;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #334155;
+  font-style: italic;
+}
+
+.pdf-finding-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.pdf-disease-badge {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 16px;
+  border-radius: 10px;
+  min-width: 120px;
+}
+
+.pdf-disease-badge .type {
+  font-size: 9px;
+  text-transform: uppercase;
+  font-weight: 800;
+  margin-bottom: 2px;
+  opacity: 0.8;
+}
+
+.pdf-disease-badge .name {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.pdf-disease-badge.technical {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+}
+
+.pdf-disease-badge.simplified {
+  background: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #93c5fd;
+}
+
+.pdf-divider {
+  height: 1px;
+  background: #f1f5f9;
+  margin: 16px 0;
+}
+
+.pdf-tag {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.pdf-tag.success { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+
+.pdf-text-content {
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.pdf-timeline {
+  display: flex;
+  flex-direction: column;
+}
+
+.pdf-timeline-item {
+  display: flex;
+  gap: 16px;
+}
+
+.pdf-timeline-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pdf-timeline-dot {
+  width: 10px;
+  height: 10px;
+  background: #6366f1;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+
+.pdf-timeline-line {
+  width: 2px;
+  flex-grow: 1;
+  background: #e2e8f0;
+  margin: 4px 0;
+}
+
+.pdf-timeline-content {
+  padding-bottom: 20px;
+}
+
+.pdf-timeline-content strong {
+  display: block;
+  font-size: 14px;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.pdf-timeline-content p {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Sidebar Styles */
+.pdf-image-container {
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  border: 2px solid #e2e8f0;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pdf-radiology-image {
+  width: 100%;
+  max-width: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+.pdf-no-image {
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.pdf-image-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  font-size: 10px;
+  padding: 6px;
+  text-align: center;
+  backdrop-filter: blur(4px);
+}
+
+.pdf-severity-meter {
+  background: #f8fafc;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.pdf-meter-track {
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.pdf-meter-fill {
+  height: 100%;
+  border-radius: 4px;
+}
+
+.pdf-meter-fill.severity-Low { background: #22c55e; }
+.pdf-meter-fill.severity-Medium { background: #eab308; }
+.pdf-meter-fill.severity-High { background: #f97316; }
+.pdf-meter-fill.severity-Critical { background: #ef4444; }
+
+.pdf-severity-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pdf-severity-label strong { font-size: 14px; color: #1e293b; }
+.pdf-severity-label span { font-size: 12px; color: #64748b; }
+
+.pdf-advice-box {
+  background: #eff6ff;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #bfdbfe;
+}
+
+.pdf-advice-box p {
+  font-size: 13px;
+  color: #1e40af;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Footer & Signature */
+.pdf-footer {
+  margin-top: 40px;
+  padding-top: 30px;
+  border-top: 2px solid #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.pdf-disclaimer {
+  max-width: 60%;
+}
+
+.pdf-disclaimer p {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 16px;
+  line-height: 1.4;
+}
+
+.pdf-verified-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ecfdf5;
+  color: #059669;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid #10b981;
+}
+
+.pdf-signature-block {
+  text-align: center;
+}
+
+.pdf-signature-container {
+  width: 200px;
+}
+
+.pdf-handwritten-sig {
+  font-family: 'Cursive', 'Brush Script MT', cursive;
+  font-size: 32px;
+  color: #1e3a8a;
+  margin-bottom: -10px;
+  opacity: 0.9;
+  transform: rotate(-2deg);
+}
+
+.pdf-signature-line {
+  border-top: 1.5px solid #0f172a;
+  margin-bottom: 8px;
+}
+
+.pdf-signature-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.pdf-signature-title {
+  font-size: 11px;
+  color: #6366f1;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.pdf-security-footer {
+  margin-top: 32px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  font-size: 10px;
+  color: #cbd5e1;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+
+.pdf-signature-line {
+  border-top: 1.5px solid #0f172a;
+  margin-bottom: 8px;
+}
+
+.pdf-signature-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.pdf-signature-title {
+  font-size: 11px;
+  color: #6366f1;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.pdf-security-footer {
+  margin-top: 32px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  font-size: 10px;
+  color: #cbd5e1;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
 

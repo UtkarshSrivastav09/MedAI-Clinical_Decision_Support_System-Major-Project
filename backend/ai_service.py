@@ -11,143 +11,98 @@ if API_KEY != "LOCAL_TEST_MODE":
     genai.configure(api_key=API_KEY)
 
 def analyze_xray(image_path: str, context: dict = {}, past_history_json: str = None) -> dict:
-    
-    progression_prompt = ""
-    if past_history_json:
-        progression_prompt = f"""
-        LONGITUDINAL TRACKING DETECTED: This patient has a previous AI report in our database. 
-        Past Report: {past_history_json}
-        You MUST explicitly compare the current scan to their past report. In your assessment, mention if the condition has improved, worsened, or remained stable.
-        """
-
-    SYSTEM_PROMPT = f"""
-    You are a dual-role AI Medical System. You must simultaneously act as an expert Clinical Radiologist AND a primary care physician.
-    Your task is to analyze the X-ray AND the provided Patient Vitals. 
-    
-    CRITICAL RULE: You must output two separate distinct objects in your JSON. 
-    The 'clinical_assessment' MUST use perfectly accurate, complex, high-level medical terminology.
-    The 'patient_layman_assessment' MUST translate every single finding into extremely simple terminology.
-
-    VITALS SANITY RULE: If a user enters medically impossible or extreme vitals (like a Body Temperature of 0 or a Blood Pressure of 0/0), you MUST flag the patient as 'Critical' severity with 'Severe Patient Shock/Hypothermia' or note it as a critical monitoring error. Do not simply declare them healthy just because the X-Ray is clean!
-    
-    PATIENT VITALS:
-    - Age: {context.get('age')}
-    - Gender: {context.get('gender')}
-    - Vitals: Temp {context.get('temperature')}, BP {context.get('bloodPressure')}
-    - Symptoms: {context.get('symptoms')}
-    
-    {progression_prompt}
-    
-    Output in STRICT JSON exactly like this structure:
-    {{
-        "clinical_assessment": {{
-            "diseases": ["Clinical Disease Name 1"],
-            "severity": "High", /* "Low", "Medium", "High", or "Critical" */
-            "confidence_score": 95, /* Number 1 to 100 */
-            "key_findings": "Rigorous radiological jargon findings. MENTION PROGRESSION HERE IF APPLICABLE.",
-            "differential_diagnosis": "Secondary clinical possibilities."
-        }},
-        "patient_layman_assessment": {{
-            "layman_diseases": ["Simplified Disease Name 1"],
-            "layman_findings": "Simplified explanation of exactly what is seen on the image. MENTION PROGRESSION HERE IF APPLICABLE (e.g. You have improved since last time).",
-            "layman_summary": "1-2 short simple sentences summarizing the overall situation.",
-            "treatment_timeline": [
-                {{"phase": "Immediate Steps", "action": "Simple first actions"}},
-                {{"phase": "Recovery Phase", "action": "Simple longer term steps"}}
-            ]
-        }},
-        "referrals": "Doctor to see next."
-    }}
-    If healthy, return empty diseases arrays and mark "Low" severity.
-    NEVER output markdown backticks like ```json, just output pure raw JSON string.
-    """
-
     if API_KEY == "LOCAL_TEST_MODE" or not API_KEY:
-        hc = " (Progression: Infection appears slightly improved since last scan.)" if past_history_json else ""
         return {
             "clinical_assessment": {
-                "diseases": ["Multifocal Pneumonia", "Cardiomegaly"],
+                "diseases": ["Multifocal Pneumonia"],
                 "severity": "High",
                 "confidence_score": 94,
-                "key_findings": f"Observed bilateral ground-glass opacities consistent with viral pneumonitis.{hc}",
-                "differential_diagnosis": "Consider acute respiratory distress syndrome (ARDS)."
+                "key_findings": "Bilateral ground-glass opacities consistent with viral pneumonitis.",
+                "differential_diagnosis": "Consider ARDS."
             },
             "patient_layman_assessment": {
                 "layman_diseases": ["Lung Infection"],
-                "layman_findings": f"There are cloudy white spots across both lungs.{hc}",
-                "layman_summary": f"Your symptoms ({context.get('symptoms')}) are likely caused by a widespread infection.",
+                "layman_findings": "There are cloudy white spots across both lungs.",
+                "layman_summary": "Your symptoms suggest a lung infection.",
                 "treatment_timeline": [{"phase": "Immediate Steps", "action": "Rest immediately."}]
             },
             "referrals": "Consult a Pulmonologist."
         }
 
     try:
+        model = genai.GenerativeModel('gemini-flash-latest')
         img = Image.open(image_path)
         img.thumbnail((1024, 1024))
         
-        model = genai.GenerativeModel('gemini-flash-latest')
-        response = model.generate_content([SYSTEM_PROMPT, img])
-        response_text = response.text.strip()
-        
-        if response_text.startswith("```json"): response_text = response_text[7:]
-        if response_text.endswith("```"): response_text = response_text[:-3]
-
-        return json.loads(response_text)
+        prompt = f"""
+        Analyze this X-ray. 
+        Context: Age {context.get('age')}, Gender {context.get('gender')}, Symptoms {context.get('symptoms')}.
+        Output STRICT JSON:
+        {{
+            "clinical_assessment": {{ "diseases": [], "severity": "Low", "confidence_score": 0, "key_findings": "", "differential_diagnosis": "" }},
+            "patient_layman_assessment": {{ "layman_diseases": [], "layman_findings": "", "layman_summary": "", "treatment_timeline": [] }},
+            "referrals": ""
+        }}
+        """
+        response = model.generate_content([prompt, img])
+        return json.loads(response.text.strip().replace("```json", "").replace("```", ""))
     except Exception as e:
         print(f"Error: {e}")
-        return {
-            "clinical_assessment": { "diseases": ["AI Processing Error"], "severity": "Critical", "confidence_score": 0, "key_findings": "Error", "differential_diagnosis": "Error"},
-            "patient_layman_assessment": {"layman_diseases": ["Computer Error"], "layman_findings": "Error", "layman_summary": "The AI failed.", "treatment_timeline": []},
-            "referrals": "N/A"
-        }
+        return { "clinical_assessment": {"diseases": ["Error"], "severity": "Critical", "confidence_score": 0, "key_findings": str(e), "differential_diagnosis": ""}, "patient_layman_assessment": {"layman_diseases": [], "layman_findings": "", "layman_summary": "", "treatment_timeline": []}, "referrals": "" }
 
 def chat_interrogate_xray(image_name: str, question: str) -> str:
-    path = f"temp_uploads/{image_name}"
-    if API_KEY == "LOCAL_TEST_MODE" or not API_KEY or not os.path.exists(path):
-        return f"Mock AI Answer to '{question}': There is significant structural damage on the left side."
-        
+    if API_KEY == "LOCAL_TEST_MODE" or not API_KEY:
+        return "Mock Answer: " + question
+
     try:
-        img = Image.open(path)
-        img.thumbnail((1024, 1024))
         model = genai.GenerativeModel('gemini-flash-latest')
-        prompt = f"You are a clinical radiologist looking at this X-ray. Answer the doctor's specific question precisely and concisely: {question}"
+        image_path = os.path.join("temp_uploads", image_name)
+        
+        if not os.path.exists(image_path):
+            return f"Error: Image '{image_name}' not found in temporal storage."
+            
+        img = Image.open(image_path)
+        
+        prompt = f"""
+        You are a senior radiologist assistant. 
+        A doctor is asking a specific question about this X-ray: "{question}"
+        Provide a concise, clinically accurate answer based strictly on the visual evidence in the image.
+        """
+        
         response = model.generate_content([prompt, img])
-        return response.text
+        return response.text.strip()
     except Exception as e:
-        return f"Error connecting to AI for chat: {str(e)}"
+        print(f"Chat Interrogate Error: {e}")
+        return f"System was unable to analyze the image frame. Error: {str(e)}"
 
 def simulate_doctor_consult(history: list, latest_message: str) -> str:
     if API_KEY == "LOCAL_TEST_MODE" or not API_KEY:
-        return f"Mock Virtual Doctor: I hear you saying '{latest_message}'. As an AI physician, I recommend we monitor this closely."
-        
+        return "Mock Doctor: " + latest_message
+
     try:
-        model = genai.GenerativeModel('gemini-flash-latest')
-        
-        system_prompt = """
-        You are Med-AI, an empathetic, highly intelligent Virtual Physician conducting a video telemedicine consultation.
-        The user is a patient describing their symptoms. 
-        Your goal is to:
-        1. Empathize and validate their feelings.
-        2. Ask 1-2 concise, highly relevant follow-up questions to narrow down the differential diagnosis.
-        3. Do NOT provide a final diagnosis immediately unless it's an absolute emergency, in which case you must advise them to call emergency services.
-        4. Keep your responses short, conversational, and suitable for Text-to-Speech (read aloud). Do not use markdown bullet points or asterisks, just natural spoken paragraphs.
+        # System instruction to set the persona
+        system_instruction = """
+        You are 'Med-AI', a professional and empathetic virtual physician. 
+        Your goal is to conduct a clinical interview with a patient to understand their symptoms.
+        - Be professional, concise, and empathetic.
+        - Ask clarifying questions about their symptoms (duration, severity, triggers).
+        - Provide preliminary medical insights but always include a disclaimer that you are an AI.
+        - Do not give definitive prescriptions, but suggest over-the-counter care or specialist visits if appropriate.
+        - Keep responses relatively short for voice synthesis compatibility.
         """
         
-        chat = model.start_chat(history=[])
+        model = genai.GenerativeModel(
+            model_name='gemini-flash-latest',
+            system_instruction=system_instruction
+        )
         
-        # We need to format the history for the gemini SDK if we had a complex history object, 
-        # but for simplicity, we can just send the system prompt + conversation history as a single text block
-        # since we want to enforce the system prompt heavily on every turn.
+        # Convert history to Gemini format
+        chat = model.start_chat(history=[
+            {"role": msg["role"], "parts": [msg["content"]]} for msg in history
+        ])
         
-        conversation_context = system_prompt + "\n\nPast Conversation:\n"
-        for msg in history:
-            role = "Patient" if msg['role'] == 'user' else "AI Doctor"
-            conversation_context += f"{role}: {msg['content']}\n"
-            
-        conversation_context += f"\nPatient: {latest_message}\nAI Doctor:"
-        
-        response = model.generate_content(conversation_context)
-        return response.text.replace("*", "").strip() # Remove asterisks so TTS reads it better
+        response = chat.send_message(latest_message)
+        return response.text.strip()
     except Exception as e:
-        return f"Error connecting to Virtual Doctor: {str(e)}"
-
+        print(f"Consult Chat Error: {e}")
+        return "I apologize, but I am having trouble connecting to my clinical knowledge base. Please try again in a moment."

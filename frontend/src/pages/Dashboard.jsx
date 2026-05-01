@@ -32,6 +32,7 @@ const CustomDonutTooltip = ({ active, payload }) => {
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const organization = sessionStorage.getItem("organization") || "Med-AI Global";
+  const username = sessionStorage.getItem("username") || "Clinician";
   const [isLightMode, setIsLightMode] = useState(
     document.documentElement.getAttribute('data-theme') === 'light'
   );
@@ -57,13 +58,16 @@ export default function Dashboard() {
   return (
     <div className="dashboard-container animate-fade-in">
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div>
-          <h1 style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Building size={36} color="var(--accent-purple)" />
-            {organization}
+        <div className="user-welcome-container">
+          <div className="welcome-text">Diagnostic Commander</div>
+          <h1 className="username-highlight">
+            {username}
           </h1>
-          <p className="subtitle" style={{ fontSize: '1.15rem', marginTop: '6px' }}>
-            Administrative Command Center — Real-time telemetry, routing, and access logs.
+          <div className="role-badge">
+             <Building size={14} /> {organization}
+          </div>
+          <p className="subtitle" style={{ fontSize: '1rem', marginTop: '12px', opacity: 0.8 }}>
+            Real-time telemetry, routing, and clinical access logs.
           </p>
         </div>
         <button 

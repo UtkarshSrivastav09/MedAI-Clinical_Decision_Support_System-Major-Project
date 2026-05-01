@@ -1,9 +1,11 @@
 import os
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning, module="google.api_core")
 import time
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
-from database import init_db, log_patient, get_dashboard_stats, get_all_patients, get_scanner_meta, update_triage, update_human_override, get_past_history, register_user, verify_user
+from database import init_db, log_patient, get_dashboard_stats, get_all_patients, get_scanner_meta, update_triage, update_human_override, get_past_history, register_user, verify_user, delete_patient
 from ai_service import analyze_xray, chat_interrogate_xray, simulate_doctor_consult
 import shutil
 from pydantic import BaseModel
@@ -258,14 +260,14 @@ def register(payload: RegisterRequest):
     success = register_user(payload.username, payload.email, payload.password, payload.organization)
     if not success:
         raise HTTPException(status_code=400, detail="Username or email already exists")
-    return {"status": "success", "organization": payload.organization}
+    return {"status": "success", "organization": payload.organization, "username": payload.username}
 
 @app.post("/api/auth/login")
 def login(payload: LoginRequest):
     data = verify_user(payload.username, payload.password)
     if not data:
         raise HTTPException(status_code=401, detail="Invalid username or password")
-    return {"status": "success", "organization": data["organization"], "user_id": data["id"]}
+    return {"status": "success", "organization": data["organization"], "user_id": data["id"], "username": payload.username}
 
 @app.get("/api/dashboard/stats")
 def get_stats(org: str = "Med-AI Global"): 
@@ -287,6 +289,11 @@ class TriageUpdate(BaseModel):
 @app.post("/api/triage/update")
 def triage_update(payload: TriageUpdate):
     update_triage(payload.id, payload.status)
+    return {"status": "success"}
+
+@app.delete("/api/patients/{patient_id}")
+def api_delete_patient(patient_id: int):
+    delete_patient(patient_id)
     return {"status": "success"}
 
 class OverrideUpdate(BaseModel):

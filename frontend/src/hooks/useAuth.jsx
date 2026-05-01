@@ -25,6 +25,7 @@ const useAuth = () => {
       
       const data = await res.json();
       sessionStorage.setItem("organization", data.organization);
+      sessionStorage.setItem("username", data.username);
       
       return true;
     } catch (err) {
@@ -55,6 +56,7 @@ const useAuth = () => {
       
       const data = await res.json();
       sessionStorage.setItem("organization", data.organization);
+      sessionStorage.setItem("username", data.username);
       
       return true;
     } catch (err) {

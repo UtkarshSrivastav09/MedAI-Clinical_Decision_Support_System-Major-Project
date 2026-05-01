@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Loader2, ArrowRight } from 'lucide-react';
+import { Loader2, ArrowRight, X, Search } from 'lucide-react';
 import './Triage.css';
 
 export default function Triage() {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchPatients = () => {
     const org = sessionStorage.getItem("organization") || "Med-AI Global";
@@ -26,12 +27,34 @@ export default function Triage() {
     }).then(() => fetchPatients());
   };
 
-  const getCol = (status) => patients.filter(p => p.triage_status === status);
+  const deletePatient = (id) => {
+    fetch(`http://127.0.0.1:8000/api/patients/${id}`, {
+      method: 'DELETE'
+    }).then(() => fetchPatients());
+  };
+
+  const filteredPatients = patients.filter(p => 
+    p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    p.doctor.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (p.diseases && p.diseases.some(d => d.toLowerCase().includes(searchQuery.toLowerCase())))
+  );
+
+  const getCol = (status) => filteredPatients.filter(p => p.triage_status === status);
+
+  const getInitials = (name) => {
+    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  };
 
   const renderCard = (p) => (
     <div className="triage-card" key={p.id} style={{borderLeft: p.requires_followup ? '3px solid var(--danger)' : '3px solid var(--success)'}}>
-       <h4>{p.name}</h4>
-       <p className="subtext">{p.age} yr | Dr. {p.doctor}</p>
+       <div className="card-header-flex">
+         <div className="patient-avatar">{getInitials(p.name)}</div>
+         <div className="patient-info">
+           <h4>{p.name}</h4>
+           <p className="subtext">{p.age} yr | Dr. {p.doctor}</p>
+         </div>
+         {p.requires_followup && <div className="critical-pulse" title="High Priority / Follow-up Required"></div>}
+       </div>
        <div className="triage-tags">
          {p.diseases.slice(0, 2).map((d, i) => <span key={i} className="mini-tag">{d}</span>)}
        </div>
@@ -39,16 +62,38 @@ export default function Triage() {
        <div className="card-actions">
          {p.triage_status === "Waiting Room" && <button onClick={() => moveStatus(p.id, "Doctor Review")}>Send to Review <ArrowRight size={14}/></button>}
          {p.triage_status === "Doctor Review" && <button onClick={() => moveStatus(p.id, "Discharged")}>Discharge Patient <ArrowRight size={14}/></button>}
-         {p.triage_status === "Discharged" && <button onClick={() => moveStatus(p.id, "Waiting Room")}>Re-admit</button>}
+         {p.triage_status === "Discharged" && (
+           <>
+             <button onClick={() => moveStatus(p.id, "Waiting Room")}>Re-admit</button>
+             <button className="delete-btn" onClick={() => deletePatient(p.id)} title="Remove Patient Record"><X size={14}/></button>
+           </>
+         )}
        </div>
     </div>
   );
 
   return (
     <div className="triage-container animate-fade-in">
-       <div className="page-header">
-        <h1>Physical Triage Kanban Board</h1>
-        <p className="subtitle">Manage real-time hospital flow by transitioning patients out of the waiting room.</p>
+       <div className="triage-top-section">
+         <div className="page-header">
+           <h1>Physical Triage Kanban Board</h1>
+           <p className="subtitle">Manage real-time hospital flow by transitioning patients out of the waiting room.</p>
+         </div>
+         
+         <div className="search-wrapper">
+           <Search size={18} className="search-icon" />
+           <input 
+             type="text" 
+             className="triage-search" 
+             placeholder="Search by name, doctor, or disease..."
+             value={searchQuery}
+             onChange={(e) => setSearchQuery(e.target.value)}
+           />
+         </div>
+       </div>
+
+      <div className="mobile-swipe-hint">
+        Swipe horizontally to view more <ArrowRight size={14} />
       </div>
       
       {loading ? <Loader2 className="spinning" /> : (

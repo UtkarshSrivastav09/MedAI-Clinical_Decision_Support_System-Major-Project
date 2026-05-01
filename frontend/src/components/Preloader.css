@@ -185,3 +185,27 @@
   font-family: monospace;
   font-weight: bold;
 }
+
+@media (max-width: 600px) {
+  .hexagon-wrapper {
+    transform: scale(0.8);
+    margin-bottom: 10px;
+  }
+  .system-title {
+    font-size: 1.4rem;
+    letter-spacing: 2px;
+  }
+  .creator-badge {
+    padding: 6px 20px;
+    margin-bottom: 30px;
+  }
+  .creator-badge h2 {
+    font-size: 1rem;
+  }
+  .loading-percentage {
+    position: static;
+    display: block;
+    margin-top: 10px;
+    text-align: center;
+  }
+}

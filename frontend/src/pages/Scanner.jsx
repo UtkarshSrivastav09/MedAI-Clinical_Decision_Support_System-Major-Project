@@ -26,6 +26,10 @@ export default function Scanner() {
       .then(d => {
         setMetaDocs(d.doctors);
         setMetaPts(d.patients);
+        // Automatically select the first doctor if none is set
+        if (d.doctors.length > 0 && !form.doctor) {
+            setForm(prev => ({...prev, doctor: d.doctors[0]}));
+        }
       });
   }, []);
 
@@ -106,9 +110,6 @@ export default function Scanner() {
   return (
     <div className="animate-fade-in scanner-container hide-on-print">
       
-      <datalist id="doctor-list">
-        {metaDocs.map((doc, idx) => <option key={idx} value={doc} />)}
-      </datalist>
       <datalist id="patient-list">
         {metaPts.map((p, idx) => <option key={idx} value={p.name} />)}
       </datalist>
@@ -129,7 +130,15 @@ export default function Scanner() {
               </div>
               <div className="input-group"><label>Age</label><input type="number" name="age" value={form.age} onChange={handleChange} placeholder="e.g. 45" /></div>
               <div className="input-group"><label>Biological Gender</label><select name="gender" value={form.gender} onChange={handleChange}><option value="Male" style={{ color: '#000' }}>Male</option><option value="Female" style={{ color: '#000' }}>Female</option><option value="Other" style={{ color: '#000' }}>Other</option></select></div>
-              <div className="input-group"><label>Ordering Doctor</label><input type="text" list="doctor-list" name="doctor" value={form.doctor} onChange={handleChange} placeholder="Search or type new doctor..." /></div>
+              <div className="input-group">
+                <label>Ordering Doctor</label>
+                <select name="doctor" value={form.doctor} onChange={handleChange}>
+                  {metaDocs.length === 0 && <option value="">Loading doctors...</option>}
+                  {metaDocs.map((doc, idx) => (
+                    <option key={idx} value={doc} style={{ color: '#000' }}>{doc}</option>
+                  ))}
+                </select>
+              </div>
            </div>
 
            <h3 className="section-title" style={{marginTop: '24px'}}><Thermometer size={20}/> Clinical Vitals</h3>

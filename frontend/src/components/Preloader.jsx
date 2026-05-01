@@ -21,7 +21,7 @@ export default function Preloader() {
       if (textIndex < texts.length) {
         setLoadingText(texts[textIndex]);
       }
-    }, 600);
+    }, 250);
 
     const progressInterval = setInterval(() => {
       setProgress(prev => {
@@ -29,9 +29,9 @@ export default function Preloader() {
           clearInterval(progressInterval);
           return 100;
         }
-        return prev + 2;
+        return prev + 4;
       });
-    }, 50);
+    }, 40);
 
     return () => {
       clearInterval(textInterval);

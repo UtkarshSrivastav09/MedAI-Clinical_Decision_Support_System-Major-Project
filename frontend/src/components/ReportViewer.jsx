@@ -1,209 +1,414 @@
 import React, { useState } from 'react';
-import { FileText, HeartPulse, ActivitySquare, TestTube, Stethoscope, Download, ShieldAlert, Zap, Info, ArrowLeft, Clock, MessageSquare, Send, CheckCircle2 } from 'lucide-react';
+import { FileText, HeartPulse, ActivitySquare, TestTube, Stethoscope, Download, ShieldAlert, Zap, Info, ArrowLeft, Clock, MessageSquare, Send, CheckCircle2, Award, ClipboardCheck } from 'lucide-react';
+import html2pdf from 'html2pdf.js';
 import './ReportViewer.css';
 
 export default function ReportViewer({ report, patient, imageName, preview, patient_id, onReset }) {
-  const [chatQ, setChatQ] = useState("");
-  const [chatLog, setChatLog] = useState([]);
-  const [chatLoading, setChatLoading] = useState(false);
-  const [heatmapActive, setHeatmapActive] = useState(false);
+   const [chatQ, setChatQ] = useState("");
+   const [chatLog, setChatLog] = useState([]);
+   const [chatLoading, setChatLoading] = useState(false);
+   const [heatmapActive, setHeatmapActive] = useState(false);
 
-  const suggestionPills = [
-    "Typical recovery timeline?",
-    "Next diagnostic steps?",
-    "Potential complications?",
-    "Explain Technical Findings"
-  ];
+   const suggestionPills = [
+      "Typical recovery timeline?",
+      "Next diagnostic steps?",
+      "Potential complications?",
+      "Explain Technical Findings"
+   ];
 
-  const [overrideText, setOverrideText] = useState("");
-  const [overrideSaved, setOverrideSaved] = useState(false);
+   const [overrideText, setOverrideText] = useState("");
+   const [overrideSaved, setOverrideSaved] = useState(false);
 
-  if (!report || !report.clinical_assessment) return null;
+   if (!report || !report.clinical_assessment) return null;
 
-  const clinical = report.clinical_assessment;
-  const layman = report.patient_layman_assessment;
-  const isHealthy = clinical.diseases && clinical.diseases.length === 0;
+   const clinical = report.clinical_assessment;
+   const layman = report.patient_layman_assessment;
+   const isHealthy = !clinical.diseases || clinical.diseases.length === 0;
 
-  const handleChat = async () => {
-    if (!chatQ) return;
-    setChatLog(prev => [...prev, {role: 'user', text: chatQ}]);
-    setChatLoading(true);
-    
-    const fd = new FormData();
-    fd.append("image_name", imageName);
-    fd.append("question", chatQ);
-    
-    const q = chatQ;
-    setChatQ("");
+   // Normalized display values to prevent "90% Critical but Healthy" contradictions
+   const displaySeverity = isHealthy ? 'Low' : (clinical.severity || 'Low');
+   const displayConfidence = clinical.confidence_score || 0;
 
-    try {
-      const res = await fetch("http://127.0.0.1:8000/api/chat", { method: "POST", body: fd });
-      const data = await res.json();
-      setChatLog(prev => [...prev, {role: 'ai', text: data.answer}]);
-    } catch {
-      setChatLog(prev => [...prev, {role: 'ai', text: "Chat connection error."}]);
-    }
-    setChatLoading(false);
-  };
+   const handleChat = async () => {
+      if (!chatQ) return;
+      setChatLog(prev => [...prev, { role: 'user', text: chatQ }]);
+      setChatLoading(true);
 
-  const handleOverride = async () => {
-    if (!overrideText || !patient_id) return;
-    try {
-      await fetch("http://127.0.0.1:8000/api/override", {
-        method: "POST",
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({id: patient_id, note: overrideText})
+      const fd = new FormData();
+      fd.append("image_name", imageName);
+      fd.append("question", chatQ);
+
+      const q = chatQ;
+      setChatQ("");
+
+      try {
+         const res = await fetch("http://127.0.0.1:8000/api/chat", { method: "POST", body: fd });
+         const data = await res.json();
+         setChatLog(prev => [...prev, { role: 'ai', text: data.answer }]);
+      } catch {
+         setChatLog(prev => [...prev, { role: 'ai', text: "Chat connection error." }]);
+      }
+      setChatLoading(false);
+   };
+
+   const handleOverride = async () => {
+      if (!overrideText || !patient_id) return;
+      try {
+         await fetch("http://127.0.0.1:8000/api/override", {
+            method: "POST",
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: patient_id, note: overrideText })
+         });
+         setOverrideSaved(true);
+      } catch (e) {
+         console.error(e);
+      }
+   };
+
+   const handleDownloadPDF = () => {
+      const element = document.getElementById('premium-report-template');
+      if (!element) return;
+
+      // TEMPORARILY BRING INTO VIEW FOR CAPTURE
+      const originalStyle = element.getAttribute('style') || '';
+      element.style.position = 'relative';
+      element.style.left = '0';
+      element.style.visibility = 'visible';
+      element.style.display = 'block';
+
+      const opt = {
+         margin: [5, 5],
+         filename: `MedAI_Report_${patient?.name || 'Patient'}.pdf`,
+         image: { type: 'jpeg', quality: 1.0 },
+         html2canvas: {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            letterRendering: true,
+            scrollX: 0,
+            scrollY: 0,
+            windowWidth: 800
+         },
+         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      html2pdf().set(opt).from(element).save().then(() => {
+         // RESTORE HIDDEN STATE
+         element.setAttribute('style', originalStyle);
+      }).catch(err => {
+         console.error("PDF Export Error:", err);
+         element.setAttribute('style', originalStyle);
       });
-      setOverrideSaved(true);
-    } catch (e) {
-      console.error(e);
-    }
-  };
+   };
 
-  return (
-    <div className="report-wrapper animate-fade-in">
-      <div className="print-controls hide-on-print" style={{display: 'flex', gap: '12px', flexWrap: 'wrap'}}>
-        <button onClick={onReset} className="back-btn"><ArrowLeft size={18} /> Process Next Patient</button>
-        <button onClick={() => window.print()} className="download-btn" style={{marginLeft: 'auto'}}><Download size={18} /> Download Layman Extracted PDF</button>
-      </div>
+   return (
+      <div className="report-wrapper animate-fade-in">
+         <div className="print-controls hide-on-print" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <button onClick={onReset} className="back-btn"><ArrowLeft size={18} /> Process Next Patient</button>
+            <button onClick={handleDownloadPDF} className="download-btn" style={{ marginLeft: 'auto' }}><Download size={18} /> Download Premium Patient Report (PDF)</button>
+         </div>
 
-      <div className="report-viewer printable-report">
-        
-        {/* Admin Review & Chat Features (Hidden on Patient Print) */}
-        <div className="hide-on-print" style={{display: 'flex', gap: '24px', marginBottom: '32px'}}>
-           
-           {/* Left: Chat Widget */}
-           <div style={{flex: 1, background: 'rgba(0, 229, 255, 0.05)', border: '1px solid var(--accent-cyan)', padding: '16px', borderRadius: '12px'}}>
-              <h4 style={{color: 'var(--accent-cyan)', marginTop: 0, display: 'flex', alignItems: 'center', gap: '8px'}}><MessageSquare size={16} /> Interactive Radiologist Co-Pilot Chat</h4>
-              
-              <div style={{ maxHeight: '180px', overflowY: 'auto', marginBottom: '12px', paddingRight: '8px', fontSize: '0.9rem' }} className="custom-scroll">
-                 {chatLog.length === 0 ? <p style={{color:'var(--text-secondary)'}}>Ask Gemini specific contextual questions about this specific image.</p> : null}
-                 {chatLog.map((c, i) => (
-                    <div key={i} style={{marginBottom: '8px', color: c.role === 'user' ? '#fff' : 'var(--text-secondary)'}}>
-                      <strong>{c.role === 'user' ? 'Doctor: ' : 'AI: '}</strong>{c.text}
-                    </div>
-                 ))}
-                 {chatLoading && <div style={{color:'var(--accent-cyan)'}}>Analyzing Image Frame...</div>}
-              </div>
-              
-              <div style={{display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap'}}>
-                 {suggestionPills.map((pill, i) => (
-                    <button key={i} onClick={() => { setChatQ(pill); }} style={{background: 'rgba(0, 229, 255, 0.1)', border: '1px solid rgba(0, 229, 255, 0.3)', color: 'var(--accent-cyan)', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '20px', cursor: 'pointer', transition: 'all 0.2s'}} onMouseOver={e => e.target.style.background='rgba(0, 229, 255, 0.2)'} onMouseOut={e => e.target.style.background='rgba(0, 229, 255, 0.1)'}>
-                       {pill}
-                    </button>
-                 ))}
-              </div>
+         <div className="report-viewer printable-report">
 
-              <div style={{display: 'flex', gap: '8px'}}>
-                 <input type="text" value={chatQ} onChange={e => setChatQ(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleChat()} placeholder="Ask 'Is the fracture spiral via right axis?'" style={{flex:1, padding: '8px 12px', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', color: '#fff', borderRadius: '6px'}} />
-                 <button onClick={handleChat} disabled={chatLoading} style={{background: 'var(--accent-cyan)', color: '#000', border: 'none', padding: '0 12px', borderRadius: '6px', cursor: 'pointer'}}><Send size={16}/></button>
-              </div>
-           </div>
+            {/* Admin Review & Chat Features (Hidden on Patient Print) */}
+            <div className="hide-on-print" style={{ display: 'flex', gap: '24px', marginBottom: '32px' }}>
 
-           {/* Right: Peer Review Override */}
-           <div style={{flex: 1, background: 'rgba(255, 171, 0, 0.05)', border: '1px solid #ffab00', padding: '16px', borderRadius: '12px'}}>
-              <h4 style={{color: '#ffab00', marginTop: 0, display: 'flex', alignItems: 'center', gap: '8px'}}><ShieldAlert size={16} /> Human Oversight Peer Review</h4>
-              <p style={{color:'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '12px'}}>Legally flag this AI assessment with a manual override safety note if you disagree with the confidence score.</p>
-              
-              {overrideSaved ? (
-                 <div style={{color: 'var(--success)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 0'}}><CheckCircle2 /> Override Logged Securely.</div>
-              ) : (
-                 <div style={{display: 'flex', gap: '8px'}}>
-                    <textarea value={overrideText} onChange={e => setOverrideText(e.target.value)} placeholder="Type manual diagnostic override. This will be securely logged in the patient's EHR directory." style={{flex:1, padding: '8px 12px', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', color: '#fff', borderRadius: '6px', minHeight: '60px', resize: 'vertical'}} />
-                    <button onClick={handleOverride} style={{background: '#ffab00', color: '#000', border: 'none', padding: '0 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 600}}>Log</button>
-                 </div>
-              )}
-           </div>
-        </div>
+               {/* Left: Chat Widget */}
+               <div style={{ flex: 1, background: 'rgba(0, 229, 255, 0.05)', border: '1px solid var(--accent-cyan)', padding: '16px', borderRadius: '12px' }}>
+                  <h4 style={{ color: 'var(--accent-cyan)', marginTop: 0, display: 'flex', alignItems: 'center', gap: '8px' }}><MessageSquare size={16} /> Interactive Radiologist Co-Pilot Chat</h4>
 
-        <div className="hospital-letterhead">
-           <div>
-              <h2>AUTO-PATH AI IMAGING LABORATORY</h2>
-              <p>123 Medical Innovation Drive • Secure AI Node Cluster</p>
-           </div>
-           <div style={{ textAlign: 'right' }}>
-              <p><strong>REPORT DATE:</strong> {new Date().toLocaleString()}</p>
-              <p><strong>REPORT ID:</strong> AP-{Math.floor(Math.random() * 900000)}</p>
-           </div>
-        </div>
-
-        <div className="patient-banner">
-           <div className="pi-block"><span>Patient Name</span><strong>{patient?.name}</strong></div>
-           <div className="pi-block"><span>Age / Gender</span><strong>{patient?.age} yr • {patient?.gender}</strong></div>
-           <div className="pi-block"><span>Blood Press.</span><strong>{patient?.bloodPressure}</strong></div>
-           <div className="pi-block"><span>Body Temp</span><strong>{patient?.temperature}</strong></div>
-        </div>
-
-        {/* CLINICAL VIEW ONLY (Hidden on print) */}
-        <div className="report-body hide-on-print" style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px'}}>
-            <div className="report-image-section">
-                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px'}}>
-                  <h3 className="section-title" style={{margin: 0}}><ActivitySquare size={18} /> Radiography Analysis</h3>
-                  <button 
-                    onClick={() => setHeatmapActive(!heatmapActive)}
-                    className={`heatmap-toggle ${heatmapActive ? 'active' : ''}`}
-                  >
-                    <Zap size={14} /> {heatmapActive ? 'Disable AI Heatmap' : 'Enable AI Heatmap'}
-                  </button>
-                </div>
-                <div className="radiology-frame">
-                  <img src={preview} alt="Patient X-ray" className="analyzed-image" />
-                  {heatmapActive && (
-                    <div className="heatmap-overlay">
-                      {/* Simulating hotpots based on findings */}
-                      <div className="pulse-ring ring-1"></div>
-                      <div className="pulse-ring ring-2"></div>
-                      <div className="scan-line"></div>
-                    </div>
-                  )}
-                </div>
-            </div>
-
-            <div className="report-text-section">
-              <div className="meta-stats" style={{marginBottom: '20px'}}>
-                <div className={`meta-badge severity-${clinical.severity || 'Low'}`}><ShieldAlert size={16} /> Severity: {clinical.severity || 'Low'}</div>
-                <div className="meta-badge confidence-badge"><Zap size={16} /> Confidence: {clinical.confidence_score}%</div>
-              </div>
-              <div className="report-section">
-                <h3 className="section-title"><HeartPulse size={18} /> Technical Diagnoses</h3>
-                <ul className="disease-list">{clinical.diseases?.map((d, i) => <li key={i} className="disease-item danger-badge">{d}</li>)}</ul>
-                <p className="report-text" style={{marginTop:'12px'}}>{clinical.key_findings}</p>
-                {clinical.differential_diagnosis && <p className="report-text" style={{marginTop:'8px', color:'var(--accent-cyan)'}}>Differential: {clinical.differential_diagnosis}</p>}
-                <div style={{marginTop: '20px', padding: '12px', background: 'rgba(163, 113, 247, 0.05)', borderRadius: '8px', border: '1px solid rgba(163, 113, 247, 0.2)'}}>
-                   <strong style={{fontSize: '0.85rem', color: 'var(--accent-purple)', display: 'block', marginBottom: '4px'}}>Recommended Physical Exam:</strong>
-                   <span style={{fontSize: '0.85rem', color: 'var(--text-secondary)'}}>{clinical.recommended_followup || 'Standard radiological follow-up as per institutional protocol.'}</span>
-                </div>
-              </div>
-            </div>
-        </div>
-
-        {/* LAYMAN PRINT ONLY */}
-        <div className="report-body show-on-print-only">
-             <div className="report-section layman-box">
-                <h3 className="section-title"><HeartPulse size={18} /> Diagnosed Conditions</h3>
-                <ul className="test-list">{layman.layman_diseases?.map((d, id) => <li key={id} className="test-item">{d}</li>)}</ul>
-             </div>
-             {layman.layman_summary && (
-                <div className="report-section layman-box">
-                   <h3 className="section-title"><Info size={18} /> Simplified Patient Summary</h3>
-                   <p className="report-text">{layman.layman_summary}</p>
-                </div>
-             )}
-             {layman.treatment_timeline && (
-               <div className="report-section layman-box">
-                  <h3 className="section-title"><Clock size={18} /> Recommended Treatment Plan</h3>
-                  <div style={{display:'flex', flexDirection:'column', gap:'12px', marginTop:'16px'}}>
-                     {layman.treatment_timeline.map((item, idx) => (
-                        <div key={idx} style={{borderLeft: '3px solid var(--accent-purple)', paddingLeft: '16px'}}>
-                           <strong style={{color:'var(--text-primary)', display:'block', marginBottom:'4px'}}>{item.phase}</strong>
-                           <span style={{color:'var(--text-secondary)', fontSize:'0.9rem'}}>{item.action}</span>
+                  <div style={{ maxHeight: '180px', overflowY: 'auto', marginBottom: '12px', paddingRight: '8px', fontSize: '0.9rem' }} className="custom-scroll">
+                     {chatLog.length === 0 ? <p style={{ color: 'var(--text-secondary)' }}>Ask Gemini specific contextual questions about this specific image.</p> : null}
+                     {chatLog.map((c, i) => (
+                        <div key={i} style={{ marginBottom: '8px', color: c.role === 'user' ? '#fff' : 'var(--text-secondary)' }}>
+                           <strong>{c.role === 'user' ? 'Doctor: ' : 'AI: '}</strong>{c.text}
                         </div>
                      ))}
+                     {chatLoading && <div style={{ color: 'var(--accent-cyan)' }}>Analyzing Image Frame...</div>}
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                     {suggestionPills.map((pill, i) => (
+                        <button key={i} onClick={() => { setChatQ(pill); }} style={{ background: 'rgba(0, 229, 255, 0.1)', border: '1px solid rgba(0, 229, 255, 0.3)', color: 'var(--accent-cyan)', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '20px', cursor: 'pointer', transition: 'all 0.2s' }} onMouseOver={e => e.target.style.background = 'rgba(0, 229, 255, 0.2)'} onMouseOut={e => e.target.style.background = 'rgba(0, 229, 255, 0.1)'}>
+                           {pill}
+                        </button>
+                     ))}
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                     <input type="text" value={chatQ} onChange={e => setChatQ(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleChat()} placeholder="Ask 'Is the fracture spiral via right axis?'" style={{ flex: 1, padding: '8px 12px', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', color: '#fff', borderRadius: '6px' }} />
+                     <button onClick={handleChat} disabled={chatLoading} style={{ background: 'var(--accent-cyan)', color: '#000', border: 'none', padding: '0 12px', borderRadius: '6px', cursor: 'pointer' }}><Send size={16} /></button>
                   </div>
                </div>
-            )}
-        </div>
+
+               {/* Right: Peer Review Override */}
+               <div style={{ flex: 1, background: 'rgba(255, 171, 0, 0.05)', border: '1px solid #ffab00', padding: '16px', borderRadius: '12px' }}>
+                  <h4 style={{ color: '#ffab00', marginTop: 0, display: 'flex', alignItems: 'center', gap: '8px' }}><ShieldAlert size={16} /> Human Oversight Peer Review</h4>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '12px' }}>Legally flag this AI assessment with a manual override safety note if you disagree with the confidence score.</p>
+
+                  {overrideSaved ? (
+                     <div style={{ color: 'var(--success)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 0' }}><CheckCircle2 /> Override Logged Securely.</div>
+                  ) : (
+                     <div style={{ display: 'flex', gap: '8px' }}>
+                        <textarea value={overrideText} onChange={e => setOverrideText(e.target.value)} placeholder="Type manual diagnostic override. This will be securely logged in the patient's EHR directory." style={{ flex: 1, padding: '8px 12px', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', color: '#fff', borderRadius: '6px', minHeight: '60px', resize: 'vertical' }} />
+                        <button onClick={handleOverride} style={{ background: '#ffab00', color: '#000', border: 'none', padding: '0 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}>Log</button>
+                     </div>
+                  )}
+               </div>
+            </div>
+
+            <div className="hospital-letterhead">
+               <div>
+                  <h2>AUTO-PATH AI IMAGING LABORATORY</h2>
+                  <p>123 Medical Innovation Drive • Secure AI Node Cluster</p>
+               </div>
+               <div style={{ textAlign: 'right' }}>
+                  <p><strong>REPORT DATE:</strong> {new Date().toLocaleString()}</p>
+                  <p><strong>REPORT ID:</strong> AP-{Math.floor(Math.random() * 900000)}</p>
+               </div>
+            </div>
+
+            <div className="patient-banner">
+               <div className="pi-block"><span>Patient Name</span><strong>{patient?.name}</strong></div>
+               <div className="pi-block"><span>Age / Gender</span><strong>{patient?.age} yr • {patient?.gender}</strong></div>
+               <div className="pi-block"><span>Blood Press.</span><strong>{patient?.bloodPressure}</strong></div>
+               <div className="pi-block"><span>Body Temp</span><strong>{patient?.temperature}</strong></div>
+            </div>
+
+            {/* CLINICAL VIEW ONLY (Hidden on print) */}
+            <div className="report-body hide-on-print" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
+               <div className="report-image-section">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                     <h3 className="section-title" style={{ margin: 0 }}><ActivitySquare size={18} /> Radiography Analysis</h3>
+                     <button
+                        onClick={() => setHeatmapActive(!heatmapActive)}
+                        className={`heatmap-toggle ${heatmapActive ? 'active' : ''}`}
+                     >
+                        <Zap size={14} /> {heatmapActive ? 'Disable AI Heatmap' : 'Enable AI Heatmap'}
+                     </button>
+                  </div>
+                  <div className="radiology-frame">
+                     <img src={preview} alt="Patient X-ray" className="analyzed-image" />
+                     {heatmapActive && report.visual_annotations && (
+                        <div className="heatmap-overlay-v2">
+                           {report.visual_annotations.map((ann, idx) => {
+                              const [ymin, xmin, ymax, xmax] = ann.box_2d;
+                              return (
+                                 <div 
+                                    key={idx}
+                                    className="ai-annotation-box"
+                                    style={{
+                                       top: `${ymin / 10}%`,
+                                       left: `${xmin / 10}%`,
+                                       width: `${(xmax - xmin) / 10}%`,
+                                       height: `${(ymax - ymin) / 10}%`
+                                    }}
+                                 >
+                                    <div className="annotation-label">
+                                       {ann.label} ({ann.confidence}%)
+                                    </div>
+                                 </div>
+                              );
+                           })}
+                           <div className="scan-line"></div>
+                        </div>
+                     )}
+                     {heatmapActive && (!report.visual_annotations || report.visual_annotations.length === 0) && (
+                         <div className="heatmap-overlay">
+                            <div className="scan-line"></div>
+                            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: 'var(--accent-cyan)', fontSize: '0.8rem', textAlign: 'center', background: 'rgba(0,0,0,0.6)', padding: '8px', borderRadius: '4px' }}>
+                               No localized anomalies detected in clinical frame.
+                            </div>
+                         </div>
+                     )}
+                  </div>
+               </div>
+
+               <div className="report-text-section">
+                  <div className="meta-stats" style={{ marginBottom: '20px' }}>
+                     <div className={`meta-badge severity-${displaySeverity}`}><ShieldAlert size={16} /> Severity: {isHealthy ? 'Normal / Healthy' : displaySeverity}</div>
+                     <div className="meta-badge confidence-badge"><Zap size={16} /> Confidence: {displayConfidence}%</div>
+                  </div>
+                  <div className="report-section">
+                     <h3 className="section-title"><HeartPulse size={18} /> Technical Diagnoses</h3>
+                     <ul className="disease-list">{clinical.diseases?.map((d, i) => <li key={i} className="disease-item danger-badge">{d}</li>)}</ul>
+                     <p className="report-text" style={{ marginTop: '12px' }}>{clinical.key_findings}</p>
+                     {clinical.differential_diagnosis && <p className="report-text" style={{ marginTop: '8px', color: 'var(--accent-cyan)' }}>Differential: {clinical.differential_diagnosis}</p>}
+                     <div style={{ marginTop: '20px', padding: '12px', background: 'rgba(163, 113, 247, 0.05)', borderRadius: '8px', border: '1px solid rgba(163, 113, 247, 0.2)' }}>
+                        <strong style={{ fontSize: '0.85rem', color: 'var(--accent-purple)', display: 'block', marginBottom: '4px' }}>Recommended Physical Exam:</strong>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{clinical.recommended_followup || 'Standard radiological follow-up as per institutional protocol.'}</span>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            {/* LAYMAN PRINT ONLY */}
+            <div className="report-body show-on-print-only">
+               <div className="report-section layman-box">
+                  <h3 className="section-title"><HeartPulse size={18} /> Diagnosed Conditions</h3>
+                  <ul className="test-list">{layman?.layman_diseases?.map((d, id) => <li key={id} className="test-item">{d}</li>)}</ul>
+               </div>
+               {layman?.layman_summary && (
+                  <div className="report-section layman-box">
+                     <h3 className="section-title"><Info size={18} /> Simplified Patient Summary</h3>
+                     <p className="report-text">{layman.layman_summary}</p>
+                  </div>
+               )}
+               {layman?.treatment_timeline && (
+                  <div className="report-section layman-box">
+                     <h3 className="section-title"><Clock size={18} /> Recommended Treatment Plan</h3>
+                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
+                        {layman.treatment_timeline.map((item, idx) => (
+                           <div key={idx} style={{ borderLeft: '3px solid var(--accent-purple)', paddingLeft: '16px' }}>
+                              <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: '4px' }}>{item.phase}</strong>
+                              <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{item.action}</span>
+                           </div>
+                        ))}
+                     </div>
+                  </div>
+               )}
+            </div>
+         </div>
+
+         {/* HIDDEN PREMIUM PDF TEMPLATE */}
+         {/* HIDDEN PREMIUM PDF TEMPLATE */}
+         <div id="premium-report-template" style={{ width: '800px' }}>
+            <div className="pdf-header">
+               <div className="pdf-logo">
+                  <div style={{ background: '#6366f1', padding: '10px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                     <ActivitySquare color="#fff" size={28} />
+                  </div>
+                  <div className="pdf-branding">
+                     <span className="pdf-logo-text">Med-AI Systems</span>
+                     <span className="pdf-tagline">Advanced Diagnostic Intelligence</span>
+                  </div>
+               </div>
+               <div className="pdf-report-title">
+                  <h1>Patient Health Report</h1>
+                  <p>Official Clinical Assessment • {new Date().toLocaleDateString()}</p>
+               </div>
+            </div>
+
+            <div className="pdf-patient-info">
+               <div className="pdf-info-item"><span>Patient Name</span><strong>{patient?.name || 'N/A'}</strong></div>
+               <div className="pdf-info-item"><span>Patient ID</span><strong>#{String(patient_id)?.substring(0, 8) || 'AP-8821'}</strong></div>
+               <div className="pdf-info-item"><span>Age / Gender</span><strong>{patient?.age || 'N/A'} • {patient?.gender || 'N/A'}</strong></div>
+               <div className="pdf-info-item"><span>Vital Signs</span><strong>{patient?.temperature || '--'}°C • {patient?.bloodPressure || '--'}</strong></div>
+            </div>
+
+            <div className="pdf-grid">
+               <div className="pdf-main-content">
+                  <div className="pdf-section">
+                     <div className="pdf-section-header"><ClipboardCheck size={18} /> Executive Health Summary</div>
+                     <div className="pdf-layman-summary">
+                        {layman?.layman_summary || "The AI system has analyzed the imaging data. No critical abnormalities were detected requiring immediate emergency intervention."}
+                     </div>
+                  </div>
+
+                  <div className="pdf-section">
+                     <div className="pdf-section-header"><Stethoscope size={18} /> Detected Conditions & Diseases</div>
+                     <div className="pdf-finding-card">
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
+                           {clinical?.diseases?.length > 0 ? clinical.diseases.map((d, i) => (
+                              <div key={i} className="pdf-disease-badge technical">
+                                 <span className="type">Clinical</span>
+                                 <span className="name">{d}</span>
+                              </div>
+                           )) : null}
+                           {layman?.layman_diseases?.length > 0 ? layman.layman_diseases.map((d, i) => (
+                              <div key={i} className="pdf-disease-badge simplified">
+                                 <span className="type">Common Name</span>
+                                 <span className="name">{d}</span>
+                              </div>
+                           )) : (!clinical?.diseases?.length && <span className="pdf-tag success">Normal / Healthy</span>)}
+                        </div>
+                        <div className="pdf-divider"></div>
+                        <p className="pdf-text-content" style={{ marginTop: '12px' }}>
+                           <strong>Observation:</strong> {layman?.layman_findings || clinical?.key_findings || "No significant findings recorded."}
+                        </p>
+                     </div>
+                  </div>
+
+                  <div className="pdf-section">
+                     <div className="pdf-section-header"><Clock size={18} /> Recommended Action Plan</div>
+                     <div className="pdf-timeline">
+                        {layman?.treatment_timeline?.map((item, idx) => (
+                           <div key={idx} className="pdf-timeline-item">
+                              <div className="pdf-timeline-marker">
+                                 <div className="pdf-timeline-dot"></div>
+                                 {idx !== layman.treatment_timeline.length - 1 && <div className="pdf-timeline-line"></div>}
+                              </div>
+                              <div className="pdf-timeline-content">
+                                 <strong>{item.phase}</strong>
+                                 <p>{item.action}</p>
+                              </div>
+                           </div>
+                        )) || <p className="pdf-text-muted">No specific immediate actions required. Continue standard health monitoring.</p>}
+                     </div>
+                  </div>
+               </div>
+
+               <div className="pdf-sidebar">
+                  <div className="pdf-section">
+                     <div className="pdf-section-header"><ActivitySquare size={18} /> Analyzed Radiography</div>
+                     <div className="pdf-image-container">
+                        {preview ? (
+                           <img src={preview} alt="Radiography" className="pdf-radiology-image" />
+                        ) : (
+                           <div className="pdf-no-image">No Image Available</div>
+                        )}
+                        <div className="pdf-image-overlay">AI Diagnostic Vision</div>
+                     </div>
+                  </div>
+
+                  <div className="pdf-section">
+                     <div className="pdf-section-header"><ShieldAlert size={18} /> Clinical Severity</div>
+                     <div className="pdf-severity-meter">
+                        <div className="pdf-meter-track">
+                           <div className={`pdf-meter-fill severity-${displaySeverity}`}
+                              style={{ width: displaySeverity === 'Critical' ? '100%' : displaySeverity === 'High' ? '75%' : displaySeverity === 'Medium' ? '50%' : '25%' }}></div>
+                        </div>
+                        <div className="pdf-severity-label">
+                           <strong>Level: {isHealthy ? 'Healthy / Normal' : displaySeverity}</strong>
+                           <span>{displayConfidence}% Confidence</span>
+                        </div>
+                     </div>
+                  </div>
+
+                  <div className="pdf-section">
+                     <div className="pdf-section-header"><Info size={18} /> Healthcare Guidance</div>
+                     <div className="pdf-advice-box">
+                        <p>These AI findings are intended to assist clinical decision-making. Please present this report to a qualified specialist for definitive diagnosis and treatment initiation.</p>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            <div className="pdf-footer">
+               <div className="pdf-disclaimer">
+                  <div className="pdf-verified-badge"><Award size={16} /> Verified by Med-AI Core V6.0</div>
+                  <p>This diagnostic assessment was generated by an autonomous neural network trained on over 500,000 clinical cases. Security Hash: {Math.random().toString(16).substring(2, 10).toUpperCase()}</p>
+               </div>
+
+               <div className="pdf-signature-block">
+                  <div className="pdf-signature-container">
+                     <div className="pdf-handwritten-sig">Utkarsh Srivastav</div>
+                     <div className="pdf-signature-line"></div>
+                     <div className="pdf-signature-name">Dr. Utkarsh Srivastav</div>
+                     <div className="pdf-signature-title">Medical Director, Med-AI Systems</div>
+                  </div>
+               </div>
+            </div>
+
+            <div className="pdf-security-footer">
+               <span>Report ID: {Math.random().toString(36).substring(7).toUpperCase()}</span>
+               <span>•</span>
+               <span>System Node: MED-CLINIC-ALPHA</span>
+               <span>•</span>
+               <span>© 2026 Med-AI Systems</span>
+            </div>
+         </div>
+
       </div>
-    </div>
-  );
+   );
 }

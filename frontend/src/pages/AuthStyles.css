@@ -238,11 +238,68 @@
     min-height: auto;
   }
   .auth-brand {
-    padding: 50px 30px;
+    padding: 40px 20px;
     border-right: none;
     border-bottom: 1px solid rgba(255,255,255,0.05);
   }
   .auth-form-wrapper {
-    padding: 50px 30px;
+    padding: 40px 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .auth-page {
+    padding: 10px;
+  }
+  .auth-brand {
+    padding: 30px 15px;
+  }
+  .auth-brand h1 {
+    font-size: 1.8rem !important;
+    margin-bottom: 10px !important;
+  }
+  .auth-brand .subtitle {
+    font-size: 0.95rem !important;
+  }
+  .auth-form-wrapper {
+    padding: 30px 15px;
+  }
+  .auth-form-wrapper h2 {
+    font-size: 1.5rem !important;
+    margin-bottom: 20px !important;
+  }
+  .auth-input-group {
+    margin-bottom: 16px;
+  }
+  .auth-input {
+    padding: 14px 14px 14px 44px !important;
+    font-size: 14px !important;
+    border-radius: 10px !important;
+  }
+  .auth-input-group svg {
+    left: 14px;
+    width: 16px;
+    height: 16px;
+  }
+  .auth-btn {
+    padding: 14px;
+    font-size: 15px;
+    margin-top: 16px;
+    border-radius: 10px;
+  }
+  .switch-text {
+    margin-top: 20px;
+    font-size: 13px;
+  }
+  .logo {
+    font-size: 1.5rem !important;
+  }
+  .logo .stat-icon {
+    width: 36px !important;
+    height: 36px !important;
+  }
+  .logo .stat-icon svg {
+    width: 20px;
+    height: 20px;
   }
 }

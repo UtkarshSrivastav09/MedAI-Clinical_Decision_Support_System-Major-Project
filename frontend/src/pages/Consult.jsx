@@ -11,6 +11,7 @@ export default function Consult() {
   const [isAISpeaking, setIsAISpeaking] = useState(false);
   const [callActive, setCallActive] = useState(false);
   const [loading, setLoading] = useState(false);
+  const username = sessionStorage.getItem("username") || "Patient Node";
 
   const videoRef = useRef(null);
   const chatEndRef = useRef(null);
@@ -209,7 +210,7 @@ export default function Consult() {
           />
           {!hasVideo && <div className="no-video-placeholder"><VideoOff size={32} color="var(--text-secondary)"/></div>}
           <div className="pip-overlay">
-            <span className="pip-label">Patient Node</span>
+            <span className="pip-label">{username}</span>
             {hasAudio && <div className="mic-active-dot"></div>}
           </div>
         </div>
