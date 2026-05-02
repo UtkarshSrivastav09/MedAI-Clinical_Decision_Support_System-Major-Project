@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
-import { Stethoscope, Activity, Database, LayoutDashboard, Layers, LogOut, Video, Menu, X } from 'lucide-react';
+import { Stethoscope, Activity, Database, LayoutDashboard, Layers, LogOut, Video, Menu, X, Sun, Moon, HelpCircle } from 'lucide-react';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Scanner from './pages/Scanner';
@@ -8,6 +8,7 @@ import PatientDatabase from './pages/PatientDatabase';
 import Dashboard from './pages/Dashboard';
 import Triage from './pages/Triage';
 import Consult from './pages/Consult';
+import Help from './pages/Help';
 import Preloader from './components/Preloader';
 import "./index.css";
 import "./App.css";
@@ -46,6 +47,7 @@ function NavLinks({ setAuth, isOpen, setIsOpen }) {
           <Link to="/scanner" onClick={handleNavClick} className={`nav-item ${isActive('/scanner')}`}><Activity size={18} /> Analyze X-Ray</Link>
           <Link to="/triage" onClick={handleNavClick} className={`nav-item ${isActive('/triage')}`}><Layers size={18} /> Clinical Workflow</Link>
           <Link to="/database" onClick={handleNavClick} className={`nav-item ${isActive('/database')}`}><Database size={18} /> Patient Records</Link>
+          <Link to="/help" onClick={handleNavClick} className={`nav-item ${isActive('/help')}`} style={{ color: 'var(--accent-cyan)' }}><HelpCircle size={18} /> About & Help</Link>
         </div>
         <div style={{ marginTop: 'auto', paddingTop: '20px', borderTop: '1px solid var(--border-color)' }}>
           <button onClick={handleLogout} className="nav-item" style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer', color: 'var(--danger)', background: 'rgba(255,82,82,0.05)' }}>
@@ -63,6 +65,9 @@ function AppContent() {
     return sessionStorage.getItem("isAuthenticated") === "true";
   });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isLightMode, setIsLightMode] = useState(
+    document.documentElement.getAttribute('data-theme') === 'light'
+  );
   const location = useLocation();
 
   useEffect(() => {
@@ -72,6 +77,12 @@ function AppContent() {
     }, 1200); // 1.2 seconds loader
     return () => clearTimeout(timer);
   }, []);
+
+  const toggleTheme = () => {
+    const newMode = !isLightMode;
+    setIsLightMode(newMode);
+    document.documentElement.setAttribute('data-theme', newMode ? 'light' : 'dark');
+  };
 
   // Determine if the current page is an authentication page
   const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
@@ -85,9 +96,14 @@ function AppContent() {
 
       <main className={isAuthPage ? "auth-main" : "main-content"}>
         {!isAuthPage && isAuthenticated && (
-          <button className="mobile-menu-btn" onClick={() => setIsSidebarOpen(true)}>
-            <Menu size={24} />
-          </button>
+          <div className="top-bar">
+            <button className="mobile-menu-btn" onClick={() => setIsSidebarOpen(true)}>
+              <Menu size={24} />
+            </button>
+            <button className="theme-toggle-btn" onClick={toggleTheme} title="Toggle Theme">
+              {isLightMode ? <Moon size={20} /> : <Sun size={20} />}
+            </button>
+          </div>
         )}
         <Routes>
           {/* Public Auth Routes */}
@@ -100,6 +116,7 @@ function AppContent() {
           <Route path="/scanner" element={isAuthenticated ? <Scanner /> : <Navigate to="/login" />} />
           <Route path="/triage" element={isAuthenticated ? <Triage /> : <Navigate to="/login" />} />
           <Route path="/database" element={isAuthenticated ? <PatientDatabase /> : <Navigate to="/login" />} />
+          <Route path="/help" element={isAuthenticated ? <Help /> : <Navigate to="/login" />} />
 
           {/* Catch-all redirect */}
           <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} />} />

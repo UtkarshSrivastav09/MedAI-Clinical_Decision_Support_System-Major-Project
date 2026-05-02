@@ -35,20 +35,59 @@ def analyze_xray(image_path: str, context: dict = {}, past_history_json: str = N
         img.thumbnail((1024, 1024))
         
         prompt = f"""
-        Analyze this X-ray. 
+        Analyze this X-ray image in detail. 
         Context: Age {context.get('age')}, Gender {context.get('gender')}, Symptoms {context.get('symptoms')}.
-        Output STRICT JSON:
+        
+        Return the results in the following STRICT JSON format:
         {{
-            "clinical_assessment": {{ "diseases": [], "severity": "Low", "confidence_score": 0, "key_findings": "", "differential_diagnosis": "" }},
-            "patient_layman_assessment": {{ "layman_diseases": [], "layman_findings": "", "layman_summary": "", "treatment_timeline": [] }},
-            "referrals": ""
+            "clinical_assessment": {{
+                "diseases": ["Technical Name 1", "Technical Name 2"],
+                "severity": "Low/Medium/High/Critical",
+                "confidence_score": 95,
+                "key_findings": "Detailed medical findings here...",
+                "differential_diagnosis": "Other possibilities...",
+                "recommended_followup": "Next medical steps..."
+            }},
+            "patient_layman_assessment": {{
+                "layman_diseases": ["Simple Name 1"],
+                "layman_findings": "What you see in simple terms...",
+                "layman_summary": "A warm 2-sentence summary for the patient.",
+                "treatment_timeline": [
+                    {{"phase": "Immediate", "action": "Step 1"}},
+                    {{"phase": "Next Week", "action": "Step 2"}}
+                ]
+            }},
+            "visual_annotations": [
+                {{"box_2d": [ymin, xmin, ymax, xmax], "label": "Detected Condition", "confidence": 95}}
+            ],
+            "referrals": "Specialist to visit"
         }}
+        
+        Note: box_2d should be [ymin, xmin, ymax, xmax] in normalized coordinates (0-1000).
+        Ensure no conversational text is included, only the JSON object.
         """
         response = model.generate_content([prompt, img])
-        return json.loads(response.text.strip().replace("```json", "").replace("```", ""))
+        cleaned_response = response.text.strip().replace("```json", "").replace("```", "")
+        return json.loads(cleaned_response)
     except Exception as e:
-        print(f"Error: {e}")
-        return { "clinical_assessment": {"diseases": ["Error"], "severity": "Critical", "confidence_score": 0, "key_findings": str(e), "differential_diagnosis": ""}, "patient_layman_assessment": {"layman_diseases": [], "layman_findings": "", "layman_summary": "", "treatment_timeline": []}, "referrals": "" }
+        print(f"Analysis Error: {e}")
+        return {
+            "clinical_assessment": {
+                "diseases": ["System Error"],
+                "severity": "Critical",
+                "confidence_score": 0,
+                "key_findings": f"The AI engine encountered an error: {str(e)}",
+                "differential_diagnosis": "N/A",
+                "recommended_followup": "Contact system administrator."
+            },
+            "patient_layman_assessment": {
+                "layman_diseases": ["Technical Issue"],
+                "layman_findings": "The system could not process the image at this time.",
+                "layman_summary": "We are sorry, but our AI diagnostic engine is currently unavailable. Please try again later or consult a doctor directly.",
+                "treatment_timeline": [{"phase": "Immediate Action", "action": "Consult your primary care physician as the automated report failed."}]
+            },
+            "referrals": "IT Support / Medical Staff"
+        }
 
 def chat_interrogate_xray(image_name: str, question: str) -> str:
     if API_KEY == "LOCAL_TEST_MODE" or not API_KEY:

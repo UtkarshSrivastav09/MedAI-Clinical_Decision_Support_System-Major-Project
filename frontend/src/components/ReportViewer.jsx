@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, HeartPulse, ActivitySquare, TestTube, Stethoscope, Download, ShieldAlert, Zap, Info, ArrowLeft, Clock, MessageSquare, Send, CheckCircle2, Award, ClipboardCheck } from 'lucide-react';
+import { FileText, HeartPulse, ActivitySquare, TestTube, Stethoscope, Download, ShieldAlert, Zap, Info, ArrowLeft, Clock, MessageSquare, Send, CheckCircle2, Award, ClipboardCheck, X } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
 import './ReportViewer.css';
 
@@ -8,6 +8,8 @@ export default function ReportViewer({ report, patient, imageName, preview, pati
    const [chatLog, setChatLog] = useState([]);
    const [chatLoading, setChatLoading] = useState(false);
    const [heatmapActive, setHeatmapActive] = useState(false);
+   const [isGenerating, setIsGenerating] = useState(false);
+   const [showPreview, setShowPreview] = useState(false);
 
    const suggestionPills = [
       "Typical recovery timeline?",
@@ -65,47 +67,61 @@ export default function ReportViewer({ report, patient, imageName, preview, pati
       }
    };
 
-   const handleDownloadPDF = () => {
-      const element = document.getElementById('premium-report-template');
-      if (!element) return;
-
-      // TEMPORARILY BRING INTO VIEW FOR CAPTURE
-      const originalStyle = element.getAttribute('style') || '';
-      element.style.position = 'relative';
-      element.style.left = '0';
-      element.style.visibility = 'visible';
-      element.style.display = 'block';
-
-      const opt = {
-         margin: [5, 5],
-         filename: `MedAI_Report_${patient?.name || 'Patient'}.pdf`,
-         image: { type: 'jpeg', quality: 1.0 },
-         html2canvas: {
-            scale: 2,
-            useCORS: true,
-            logging: false,
-            letterRendering: true,
-            scrollX: 0,
-            scrollY: 0,
-            windowWidth: 800
-         },
-         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
-
-      html2pdf().set(opt).from(element).save().then(() => {
-         // RESTORE HIDDEN STATE
-         element.setAttribute('style', originalStyle);
-      }).catch(err => {
-         console.error("PDF Export Error:", err);
-         element.setAttribute('style', originalStyle);
-      });
-   };
+    const handleDownloadPDF = (action = 'save') => {
+       const element = document.getElementById('premium-report-template');
+       if (!element) return;
+ 
+       setIsGenerating(true);
+ 
+       const opt = {
+          margin: [0, 0],
+          filename: `MedAI_Report_${patient?.name || 'Patient'}.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: {
+             scale: 2,
+             useCORS: true,
+             logging: false,
+             letterRendering: true,
+             allowTaint: true,
+             backgroundColor: '#ffffff',
+             windowWidth: 800,
+             scrollY: 0,
+             scrollX: 0
+          },
+          jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' }
+       };
+ 
+       // Ensure all images inside are loaded
+       const images = element.getElementsByTagName('img');
+       const imagePromises = Array.from(images).map(img => {
+          if (img.complete) return Promise.resolve();
+          return new Promise(resolve => {
+             img.onload = resolve;
+             img.onerror = resolve;
+          });
+       });
+ 
+       Promise.all(imagePromises).then(() => {
+          // Temporarily move to a safe capture spot if needed, but here we use the ghost div
+          if (action === 'print') {
+             html2pdf().set(opt).from(element).toPdf().get('pdf').then(function (pdf) {
+                window.open(pdf.output('bloburl'), '_blank');
+                setIsGenerating(false);
+             }).catch(() => setIsGenerating(false));
+          } else {
+             html2pdf().set(opt).from(element).save().then(() => setIsGenerating(false)).catch(() => setIsGenerating(false));
+          }
+       });
+    };
 
    return (
       <div className="report-wrapper animate-fade-in">
          <div className="print-controls hide-on-print" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             <button onClick={onReset} className="back-btn"><ArrowLeft size={18} /> Process Next Patient</button>
-            <button onClick={handleDownloadPDF} className="download-btn" style={{ marginLeft: 'auto' }}><Download size={18} /> Download Premium Patient Report (PDF)</button>
+            <button onClick={() => handleDownloadPDF('save')} className="download-btn" style={{ marginLeft: 'auto' }} disabled={isGenerating}>
+               {isGenerating ? <Zap size={18} className="large-spinner" /> : <Download size={18} />}
+               {isGenerating ? "Generating PDF..." : "Download Premium Patient Report (PDF)"}
+            </button>
          </div>
 
          <div className="report-viewer printable-report">
@@ -229,6 +245,7 @@ export default function ReportViewer({ report, patient, imageName, preview, pati
                      <div className={`meta-badge severity-${displaySeverity}`}><ShieldAlert size={16} /> Severity: {isHealthy ? 'Normal / Healthy' : displaySeverity}</div>
                      <div className="meta-badge confidence-badge"><Zap size={16} /> Confidence: {displayConfidence}%</div>
                   </div>
+
                   <div className="report-section">
                      <h3 className="section-title"><HeartPulse size={18} /> Technical Diagnoses</h3>
                      <ul className="disease-list">{clinical.diseases?.map((d, i) => <li key={i} className="disease-item danger-badge">{d}</li>)}</ul>
@@ -270,145 +287,143 @@ export default function ReportViewer({ report, patient, imageName, preview, pati
             </div>
          </div>
 
-         {/* HIDDEN PREMIUM PDF TEMPLATE */}
-         {/* HIDDEN PREMIUM PDF TEMPLATE */}
-         <div id="premium-report-template" style={{ width: '800px' }}>
-            <div className="pdf-header">
-               <div className="pdf-logo">
-                  <div style={{ background: '#6366f1', padding: '10px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                     <ActivitySquare color="#fff" size={28} />
-                  </div>
-                  <div className="pdf-branding">
-                     <span className="pdf-logo-text">Med-AI Systems</span>
-                     <span className="pdf-tagline">Advanced Diagnostic Intelligence</span>
-                  </div>
-               </div>
-               <div className="pdf-report-title">
-                  <h1>Patient Health Report</h1>
-                  <p>Official Clinical Assessment • {new Date().toLocaleDateString()}</p>
-               </div>
-            </div>
-
-            <div className="pdf-patient-info">
-               <div className="pdf-info-item"><span>Patient Name</span><strong>{patient?.name || 'N/A'}</strong></div>
-               <div className="pdf-info-item"><span>Patient ID</span><strong>#{String(patient_id)?.substring(0, 8) || 'AP-8821'}</strong></div>
-               <div className="pdf-info-item"><span>Age / Gender</span><strong>{patient?.age || 'N/A'} • {patient?.gender || 'N/A'}</strong></div>
-               <div className="pdf-info-item"><span>Vital Signs</span><strong>{patient?.temperature || '--'}°C • {patient?.bloodPressure || '--'}</strong></div>
-            </div>
-
-            <div className="pdf-grid">
-               <div className="pdf-main-content">
-                  <div className="pdf-section">
-                     <div className="pdf-section-header"><ClipboardCheck size={18} /> Executive Health Summary</div>
-                     <div className="pdf-layman-summary">
-                        {layman?.layman_summary || "The AI system has analyzed the imaging data. No critical abnormalities were detected requiring immediate emergency intervention."}
+         {/* GHOST PDF TEMPLATE (Hidden but visible to capture engine) */}
+         <div style={{ position: 'absolute', top: '-20000px', left: 0, width: '800px', pointerEvents: 'none' }}>
+            <div id="premium-report-template" style={{ background: '#fff' }}>
+               <div className="pdf-header">
+                  <div className="pdf-logo">
+                     <div style={{ background: '#6366f1', padding: '10px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <ActivitySquare color="#fff" size={28} />
+                     </div>
+                     <div className="pdf-branding">
+                        <span className="pdf-logo-text">Med-AI Systems</span>
+                        <span className="pdf-tagline">Advanced Diagnostic Intelligence</span>
                      </div>
                   </div>
+                  <div className="pdf-report-title">
+                     <h1>Patient Health Report</h1>
+                     <p>Official Clinical Assessment • {new Date().toLocaleDateString()}</p>
+                  </div>
+               </div>
 
-                  <div className="pdf-section">
-                     <div className="pdf-section-header"><Stethoscope size={18} /> Detected Conditions & Diseases</div>
-                     <div className="pdf-finding-card">
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
-                           {clinical?.diseases?.length > 0 ? clinical.diseases.map((d, i) => (
-                              <div key={i} className="pdf-disease-badge technical">
-                                 <span className="type">Clinical</span>
-                                 <span className="name">{d}</span>
-                              </div>
-                           )) : null}
-                           {layman?.layman_diseases?.length > 0 ? layman.layman_diseases.map((d, i) => (
-                              <div key={i} className="pdf-disease-badge simplified">
-                                 <span className="type">Common Name</span>
-                                 <span className="name">{d}</span>
-                              </div>
-                           )) : (!clinical?.diseases?.length && <span className="pdf-tag success">Normal / Healthy</span>)}
+               <div className="pdf-patient-info">
+                  <div className="pdf-info-item"><span>Patient Name</span><strong>{patient?.name || 'N/A'}</strong></div>
+                  <div className="pdf-info-item"><span>Patient ID</span><strong>#{String(patient_id)?.substring(0, 8) || 'AP-8821'}</strong></div>
+                  <div className="pdf-info-item"><span>Age / Gender</span><strong>{patient?.age || 'N/A'} • {patient?.gender || 'N/A'}</strong></div>
+                  <div className="pdf-info-item"><span>Vital Signs</span><strong>{patient?.temperature || '--'}°C • {patient?.bloodPressure || '--'}</strong></div>
+               </div>
+
+               <div className="pdf-grid">
+                  <div className="pdf-main-content">
+                     <div className="pdf-section">
+                        <div className="pdf-section-header"><ClipboardCheck size={18} /> Executive Health Summary (Layman)</div>
+                        <div className="pdf-layman-summary">
+                           {layman?.layman_summary || "The AI system has analyzed the imaging data. No critical abnormalities were detected requiring immediate emergency intervention."}
                         </div>
-                        <div className="pdf-divider"></div>
-                        <p className="pdf-text-content" style={{ marginTop: '12px' }}>
-                           <strong>Observation:</strong> {layman?.layman_findings || clinical?.key_findings || "No significant findings recorded."}
-                        </p>
+                     </div>
+
+                     <div className="pdf-section">
+                        <div className="pdf-section-header"><Stethoscope size={18} /> Diagnosed Conditions</div>
+                        <div className="pdf-finding-card">
+                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
+                              {clinical?.diseases?.length > 0 ? clinical.diseases.map((d, i) => (
+                                 <div key={i} className="pdf-disease-badge technical">
+                                    <span className="type">Clinical</span>
+                                    <span className="name">{d}</span>
+                                 </div>
+                              )) : null}
+                              {layman?.layman_diseases?.length > 0 ? layman.layman_diseases.map((d, i) => (
+                                 <div key={i} className="pdf-disease-badge simplified">
+                                    <span className="type">Common Name</span>
+                                    <span className="name">{d}</span>
+                                 </div>
+                              )) : (!clinical?.diseases?.length && <span className="pdf-tag success">Normal / Healthy</span>)}
+                           </div>
+                           <div className="pdf-divider"></div>
+                           <p className="pdf-text-content" style={{ marginTop: '12px' }}>
+                              <strong>Observation:</strong> {layman?.layman_findings || clinical?.key_findings || "No significant findings recorded."}
+                           </p>
+                        </div>
+                     </div>
+
+                     <div className="pdf-section">
+                        <div className="pdf-section-header"><Clock size={18} /> Recommended Action Plan</div>
+                        <div className="pdf-timeline">
+                           {layman?.treatment_timeline?.map((item, idx) => (
+                              <div key={idx} className="pdf-timeline-item">
+                                 <div className="pdf-timeline-marker">
+                                    <div className="pdf-timeline-dot"></div>
+                                    {idx !== layman.treatment_timeline.length - 1 && <div className="pdf-timeline-line"></div>}
+                                 </div>
+                                 <div className="pdf-timeline-content">
+                                    <strong>{item.phase}</strong>
+                                    <p>{item.action}</p>
+                                 </div>
+                              </div>
+                           )) || <p className="pdf-text-muted">No specific immediate actions required. Continue standard health monitoring.</p>}
+                        </div>
                      </div>
                   </div>
 
-                  <div className="pdf-section">
-                     <div className="pdf-section-header"><Clock size={18} /> Recommended Action Plan</div>
-                     <div className="pdf-timeline">
-                        {layman?.treatment_timeline?.map((item, idx) => (
-                           <div key={idx} className="pdf-timeline-item">
-                              <div className="pdf-timeline-marker">
-                                 <div className="pdf-timeline-dot"></div>
-                                 {idx !== layman.treatment_timeline.length - 1 && <div className="pdf-timeline-line"></div>}
-                              </div>
-                              <div className="pdf-timeline-content">
-                                 <strong>{item.phase}</strong>
-                                 <p>{item.action}</p>
+                  <div className="pdf-sidebar">
+                     <div className="pdf-section">
+                        <div className="pdf-section-header"><ActivitySquare size={18} /> Radiography</div>
+                        <div className="pdf-image-container">
+                           {preview ? (
+                              <img src={preview} alt="Radiography" className="pdf-radiology-image" />
+                           ) : (
+                              <div className="pdf-no-image">No Image Available</div>
+                           )}
+                           <div className="pdf-image-overlay">AI Diagnostic Vision</div>
+                        </div>
+                     </div>
+
+                     <div className="pdf-section">
+                        <div className="pdf-section-header"><ShieldAlert size={18} /> Clinical Severity</div>
+                        <div className="pdf-severity-meter">
+                           <div className="pdf-meter-track">
+                              <div className={`pdf-meter-fill severity-${displaySeverity}`}
+                                 style={{ width: displaySeverity === 'Critical' ? '100%' : displaySeverity === 'High' ? '75%' : displaySeverity === 'Medium' ? '50%' : '25%' }}></div>
+                           </div>
+                           <div className="pdf-severity-label">
+                              <strong>Level: {isHealthy ? 'Healthy' : displaySeverity}</strong>
+                              <span>{displayConfidence}% Confidence</span>
+                           </div>
+                        </div>
+                     </div>
+
+                     <div className="pdf-section">
+                        <div className="pdf-section-header"><Info size={18} /> Guidance</div>
+                        <div className="pdf-advice-box">
+                           <p>AI findings assist clinical decisions. Present to a specialist for definitive diagnosis.</p>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+
+               <div className="pdf-footer">
+                  <div className="pdf-disclaimer">
+                     <div className="pdf-verified-badge"><Award size={16} /> Verified by Med-AI Core</div>
+                     <p>This assessment was generated by an autonomous neural network trained on clinical cases.</p>
+                  </div>
+
+                  <div className="pdf-signature-block">
+                        <div className="pdf-signature-container">
+                           <div className="pdf-seal-wrapper">
+                              <div className="pdf-digital-seal">
+                                 <Award size={20} color="#fff" />
+                                 <div className="seal-text">VERIFIED<br/>DOCUMENT</div>
                               </div>
                            </div>
-                        )) || <p className="pdf-text-muted">No specific immediate actions required. Continue standard health monitoring.</p>}
-                     </div>
-                  </div>
-               </div>
-
-               <div className="pdf-sidebar">
-                  <div className="pdf-section">
-                     <div className="pdf-section-header"><ActivitySquare size={18} /> Analyzed Radiography</div>
-                     <div className="pdf-image-container">
-                        {preview ? (
-                           <img src={preview} alt="Radiography" className="pdf-radiology-image" />
-                        ) : (
-                           <div className="pdf-no-image">No Image Available</div>
-                        )}
-                        <div className="pdf-image-overlay">AI Diagnostic Vision</div>
-                     </div>
-                  </div>
-
-                  <div className="pdf-section">
-                     <div className="pdf-section-header"><ShieldAlert size={18} /> Clinical Severity</div>
-                     <div className="pdf-severity-meter">
-                        <div className="pdf-meter-track">
-                           <div className={`pdf-meter-fill severity-${displaySeverity}`}
-                              style={{ width: displaySeverity === 'Critical' ? '100%' : displaySeverity === 'High' ? '75%' : displaySeverity === 'Medium' ? '50%' : '25%' }}></div>
+                           <div className="pdf-handwritten-sig">Utkarsh Srivastav</div>
+                           <div className="pdf-signature-line"></div>
+                           <div className="pdf-signature-name">Dr. Utkarsh Srivastav</div>
+                           <div className="pdf-signature-title">Medical Director • Med-AI Systems</div>
                         </div>
-                        <div className="pdf-severity-label">
-                           <strong>Level: {isHealthy ? 'Healthy / Normal' : displaySeverity}</strong>
-                           <span>{displayConfidence}% Confidence</span>
-                        </div>
-                     </div>
-                  </div>
-
-                  <div className="pdf-section">
-                     <div className="pdf-section-header"><Info size={18} /> Healthcare Guidance</div>
-                     <div className="pdf-advice-box">
-                        <p>These AI findings are intended to assist clinical decision-making. Please present this report to a qualified specialist for definitive diagnosis and treatment initiation.</p>
-                     </div>
                   </div>
                </div>
-            </div>
-
-            <div className="pdf-footer">
-               <div className="pdf-disclaimer">
-                  <div className="pdf-verified-badge"><Award size={16} /> Verified by Med-AI Core V6.0</div>
-                  <p>This diagnostic assessment was generated by an autonomous neural network trained on over 500,000 clinical cases. Security Hash: {Math.random().toString(16).substring(2, 10).toUpperCase()}</p>
-               </div>
-
-               <div className="pdf-signature-block">
-                  <div className="pdf-signature-container">
-                     <div className="pdf-handwritten-sig">Utkarsh Srivastav</div>
-                     <div className="pdf-signature-line"></div>
-                     <div className="pdf-signature-name">Dr. Utkarsh Srivastav</div>
-                     <div className="pdf-signature-title">Medical Director, Med-AI Systems</div>
-                  </div>
-               </div>
-            </div>
-
-            <div className="pdf-security-footer">
-               <span>Report ID: {Math.random().toString(36).substring(7).toUpperCase()}</span>
-               <span>•</span>
-               <span>System Node: MED-CLINIC-ALPHA</span>
-               <span>•</span>
-               <span>© 2026 Med-AI Systems</span>
             </div>
          </div>
-
       </div>
    );
 }

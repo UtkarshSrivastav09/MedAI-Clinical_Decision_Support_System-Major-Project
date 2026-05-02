@@ -162,9 +162,20 @@ export default function Scanner() {
         <div className="upload-section">
           {loading ? (
             <div className="loading-state glass-card">
-              <Loader2 className="large-spinner" size={48} color="var(--accent-purple)" />
+              <div className="cyber-scanner-visual">
+                <div className="scanner-bar"></div>
+                <Loader2 className="large-spinner" size={48} color="var(--accent-purple)" />
+              </div>
               <h3>Consulting Medical Knowledge Graph...</h3>
               <p>Analyzing extensive visual progression and symptom data.</p>
+              <div className="analysis-progress-container">
+                <div className="analysis-progress-bar"></div>
+              </div>
+              <div className="analysis-steps">
+                <span>Preprocessing Image</span>
+                <span>Extracting Features</span>
+                <span>Matching Patterns</span>
+              </div>
             </div>
           ) : (
             <div className="glass-card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>

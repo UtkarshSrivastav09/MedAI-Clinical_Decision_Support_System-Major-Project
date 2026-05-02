@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, Stethoscope, AlertOctagon, HeartPulse, ShieldAlert, Cpu, Building, Users, Sun, Moon } from 'lucide-react';
+import { Activity, Stethoscope, AlertOctagon, HeartPulse, ShieldAlert, Cpu, Building, Users, Sun, Moon, Clock, User, ClipboardList } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import './Dashboard.css';
 
@@ -33,15 +33,6 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const organization = sessionStorage.getItem("organization") || "Med-AI Global";
   const username = sessionStorage.getItem("username") || "Clinician";
-  const [isLightMode, setIsLightMode] = useState(
-    document.documentElement.getAttribute('data-theme') === 'light'
-  );
-
-  const toggleTheme = () => {
-    const newMode = !isLightMode;
-    setIsLightMode(newMode);
-    document.documentElement.setAttribute('data-theme', newMode ? 'light' : 'dark');
-  };
 
   useEffect(() => {
     fetch(`http://127.0.0.1:8000/api/dashboard/stats?org=${encodeURIComponent(organization)}`)
@@ -57,7 +48,7 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard-container animate-fade-in">
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <div className="page-header">
         <div className="user-welcome-container">
           <div className="welcome-text">Diagnostic Commander</div>
           <h1 className="username-highlight">
@@ -70,24 +61,6 @@ export default function Dashboard() {
             Real-time telemetry, routing, and clinical access logs.
           </p>
         </div>
-        <button 
-          onClick={toggleTheme} 
-          style={{ 
-            background: 'var(--bg-glass)', 
-            border: '1px solid var(--border-color)', 
-            padding: '10px', 
-            borderRadius: '50%', 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            color: 'var(--text-primary)',
-            transition: 'all 0.3s',
-            cursor: 'pointer'
-          }}
-          title="Toggle Theme"
-        >
-          {isLightMode ? <Moon size={24} /> : <Sun size={24} />}
-        </button>
       </div>
 
       {/* TOP ROW: Core Metrics */}
@@ -132,10 +105,10 @@ export default function Dashboard() {
                {stats.top_doctors?.length > 0 ? (
                  <ResponsiveContainer width="100%" height="100%">
                    <BarChart data={stats.top_doctors} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                     <CartesianGrid strokeDasharray="3 3" stroke={isLightMode ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)'} vertical={false} />
-                     <XAxis dataKey="name" stroke={isLightMode ? '#666' : '#aaa'} fontSize={11} tickLine={false} axisLine={false} />
-                     <YAxis stroke={isLightMode ? '#666' : '#aaa'} fontSize={11} tickLine={false} axisLine={false} />
-                     <Tooltip content={<CustomTooltip />} cursor={{ fill: isLightMode ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)' }} />
+                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                     <XAxis dataKey="name" stroke="var(--text-secondary)" fontSize={11} tickLine={false} axisLine={false} />
+                     <YAxis stroke="var(--text-secondary)" fontSize={11} tickLine={false} axisLine={false} />
+                     <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
                      <Bar dataKey="count" fill="var(--accent-cyan)" radius={[4, 4, 0, 0]} />
                    </BarChart>
                  </ResponsiveContainer>
@@ -185,7 +158,7 @@ export default function Dashboard() {
                {stats.critical_alerts?.length > 0 ? stats.critical_alerts.map((al, i) => (
                   <li key={i} style={{background: 'rgba(255,82,82,0.08)', flexDirection: 'column', gap: '8px', padding: '16px'}}>
                      <div style={{display: 'flex', justifyContent: 'space-between', width: '100%'}}>
-                       <div className="doc-name" style={{color: isLightMode ? '#000' : '#fff'}}>{al.patient}</div>
+                       <div className="doc-name">{al.patient}</div>
                        <div className="doc-count" style={{color: 'var(--danger)'}}>{al.issue}</div>
                      </div>
                   </li>
@@ -207,35 +180,72 @@ export default function Dashboard() {
          </div>
       </div>
 
-      {/* BOTTOM ROW: Recent Timeline */}
-      <div className="glass-card">
-         <h3 style={{marginBottom: '16px'}}>Recent Live Scans (Global System Feed)</h3>
-         <table className="recent-scans-table">
-          <thead>
-            <tr>
-              <th>Date/Time</th>
-              <th>Patient Name</th>
-              <th>Primary Condition</th>
-              <th>Flags</th>
-            </tr>
-          </thead>
-          <tbody>
-            {stats.recent_scans.length > 0 ? stats.recent_scans.map((scan, idx) => (
-              <tr key={idx} style={{ background: scan.requires_followup ? 'rgba(255,0,0,0.05)' : 'transparent'}}>
-                <td style={{color: 'var(--text-secondary)'}}>{new Date(scan.date).toLocaleString()}</td>
-                <td style={{fontWeight: 600}}>{scan.patient}</td>
-                <td>
-                  <div className="disease-tags">
-                     {scan.diseases.length === 0 ? <span className="tag healthy">Healthy</span> : scan.diseases.map((d, i) => <span key={i} className="tag">{d}</span>)}
-                  </div>
-                </td>
-                <td>
-                   {scan.requires_followup && <ShieldAlert size={16} color="var(--danger)" />}
-                </td>
+      {/* BOTTOM SECTION: Global System Feed */}
+      <div className="glass-card feed-container">
+        <div className="feed-header-minimal">
+          <div className="feed-title-group">
+            <div className="live-indicator-dot"></div>
+            <h3>Recent Live Scans <span className="feed-tag">Global Feed</span></h3>
+          </div>
+          <div className="feed-stats">
+            <Clock size={14} /> Real-time Monitoring
+          </div>
+        </div>
+
+        <div className="feed-content">
+          <table className="modern-feed-table">
+            <thead>
+              <tr>
+                <th><Clock size={14} /> Time</th>
+                <th><User size={14} /> Patient</th>
+                <th><ClipboardList size={14} /> Diagnosis Assessment</th>
+                <th>Status</th>
               </tr>
-            )) : <tr><td colSpan="4">No scans found in database.</td></tr>}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {stats.recent_scans?.length > 0 ? stats.recent_scans.map((scan, idx) => (
+                <tr key={idx} className={scan.requires_followup ? 'row-priority' : 'row-normal'}>
+                  <td className="cell-time">
+                    <span className="time-val">{new Date(scan.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    <span className="date-val">{new Date(scan.date).toLocaleDateString()}</span>
+                  </td>
+                  <td className="cell-patient">
+                    <div className="patient-flex">
+                      <div className="patient-initial">{scan.patient.charAt(0)}</div>
+                      <span className="name-val">{scan.patient}</span>
+                    </div>
+                  </td>
+                  <td className="cell-diagnosis">
+                    <div className="pills-container">
+                      {scan.diseases.length === 0 ? (
+                        <span className="pill pill-healthy">Healthy / Normal</span>
+                      ) : (
+                        scan.diseases.map((d, i) => (
+                          <span key={i} className="pill pill-disease">{d}</span>
+                        ))
+                      )}
+                    </div>
+                  </td>
+                  <td className="cell-status">
+                    {scan.requires_followup ? (
+                      <div className="status-indicator critical">
+                        <ShieldAlert size={14} /> Critical
+                      </div>
+                    ) : (
+                      <div className="status-indicator stable">
+                        AI Verified
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              )) : (
+                <tr>
+                  <td colSpan="4" className="empty-msg">Waiting for incoming clinical data...</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
     </div>

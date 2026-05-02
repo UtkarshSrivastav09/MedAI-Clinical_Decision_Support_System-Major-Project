@@ -140,6 +140,79 @@
   margin-bottom: 8px;
 }
 
+.cyber-scanner-visual {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(163, 113, 247, 0.05);
+  border-radius: 50%;
+  border: 2px solid rgba(163, 113, 247, 0.2);
+  margin-bottom: 24px;
+}
+
+.scanner-bar {
+  position: absolute;
+  width: 140px;
+  height: 4px;
+  background: var(--accent-cyan);
+  box-shadow: 0 0 20px var(--accent-cyan);
+  border-radius: 2px;
+  animation: scan-move 2s infinite ease-in-out;
+}
+
+@keyframes scan-move {
+  0%, 100% { transform: translateY(-60px); opacity: 0.2; }
+  50% { transform: translateY(60px); opacity: 1; }
+}
+
+.analysis-progress-container {
+  width: 100%;
+  max-width: 300px;
+  height: 6px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 10px;
+  margin-top: 24px;
+  overflow: hidden;
+}
+
+.analysis-progress-bar {
+  height: 100%;
+  width: 0%;
+  background: var(--accent-gradient);
+  border-radius: 10px;
+  animation: progress-fill 4s infinite linear;
+}
+
+@keyframes progress-fill {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
+
+.analysis-steps {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  font-size: 0.75rem;
+  color: var(--accent-cyan);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.analysis-steps span {
+  animation: pulse-text 1.5s infinite;
+}
+
+.analysis-steps span:nth-child(2) { animation-delay: 0.5s; }
+.analysis-steps span:nth-child(3) { animation-delay: 1s; }
+
+@keyframes pulse-text {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
 .spinner, .large-spinner {
   animation: spin 1s linear infinite;
 }
@@ -157,6 +230,10 @@
 }
 
 @media (max-width: 768px) {
+  .scanner-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
   .form-grid {
     grid-template-columns: 1fr;
     gap: 12px;
@@ -175,12 +252,23 @@
   .action-btn {
     font-size: 1rem;
     padding: 14px;
+    width: 100%;
+  }
+  .loading-state {
+    min-height: 300px;
+  }
+  .cyber-scanner-visual {
+    width: 80px;
+    height: 80px;
+  }
+  .scanner-bar {
+    width: 100px;
   }
 }
 
 @media (max-width: 480px) {
   .upload-dropzone {
-    min-height: 150px;
+    min-height: 180px;
   }
   .scanner-header h1 {
     font-size: 1.5rem;
@@ -196,5 +284,10 @@
   .input-group textarea {
     padding: 10px;
     font-size: 0.9rem;
+  }
+  .analysis-steps {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
   }
 }
