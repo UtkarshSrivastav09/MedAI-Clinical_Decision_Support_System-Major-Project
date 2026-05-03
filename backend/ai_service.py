@@ -6,29 +6,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-API_KEY = os.getenv("GEMINI_API_KEY", "LOCAL_TEST_MODE")
-if API_KEY != "LOCAL_TEST_MODE":
-    genai.configure(api_key=API_KEY)
+# SIMPLE STABLE CONFIGURATION
+api_key = os.getenv("GEMINI_API_KEY")
+genai.configure(api_key=api_key)
 
 def analyze_xray(image_path: str, context: dict = {}, past_history_json: str = None) -> dict:
-    if API_KEY == "LOCAL_TEST_MODE" or not API_KEY:
-        return {
-            "clinical_assessment": {
-                "diseases": ["Multifocal Pneumonia"],
-                "severity": "High",
-                "confidence_score": 94,
-                "key_findings": "Bilateral ground-glass opacities consistent with viral pneumonitis.",
-                "differential_diagnosis": "Consider ARDS."
-            },
-            "patient_layman_assessment": {
-                "layman_diseases": ["Lung Infection"],
-                "layman_findings": "There are cloudy white spots across both lungs.",
-                "layman_summary": "Your symptoms suggest a lung infection.",
-                "treatment_timeline": [{"phase": "Immediate Steps", "action": "Rest immediately."}]
-            },
-            "referrals": "Consult a Pulmonologist."
-        }
-
     try:
         model = genai.GenerativeModel('gemini-flash-latest')
         img = Image.open(image_path)
@@ -58,7 +40,7 @@ def analyze_xray(image_path: str, context: dict = {}, past_history_json: str = N
                 ]
             }},
             "visual_annotations": [
-                {{"box_2d": [ymin, xmin, ymax, xmax], "label": "Detected Condition", "confidence": 95}}
+                {{"box_2d": [100, 100, 200, 200], "label": "Detected Condition", "confidence": 95}}
             ],
             "referrals": "Specialist to visit"
         }}
@@ -69,6 +51,7 @@ def analyze_xray(image_path: str, context: dict = {}, past_history_json: str = N
         response = model.generate_content([prompt, img])
         cleaned_response = response.text.strip().replace("```json", "").replace("```", "")
         return json.loads(cleaned_response)
+
     except Exception as e:
         print(f"Analysis Error: {e}")
         return {
@@ -76,72 +59,61 @@ def analyze_xray(image_path: str, context: dict = {}, past_history_json: str = N
                 "diseases": ["System Error"],
                 "severity": "Critical",
                 "confidence_score": 0,
-                "key_findings": f"The AI engine encountered an error: {str(e)}",
+                "key_findings": f"Error: {str(e)}",
                 "differential_diagnosis": "N/A",
-                "recommended_followup": "Contact system administrator."
+                "recommended_followup": "Retry analysis."
             },
             "patient_layman_assessment": {
                 "layman_diseases": ["Technical Issue"],
-                "layman_findings": "The system could not process the image at this time.",
-                "layman_summary": "We are sorry, but our AI diagnostic engine is currently unavailable. Please try again later or consult a doctor directly.",
-                "treatment_timeline": [{"phase": "Immediate Action", "action": "Consult your primary care physician as the automated report failed."}]
+                "layman_findings": "The system could not process the image.",
+                "layman_summary": "Diagnostic engine error. Please check your API key.",
+                "treatment_timeline": [{"phase": "Error", "action": "Contact Support"}]
             },
-            "referrals": "IT Support / Medical Staff"
+            "referrals": "IT Support"
         }
 
 def chat_interrogate_xray(image_name: str, question: str) -> str:
-    if API_KEY == "LOCAL_TEST_MODE" or not API_KEY:
-        return "Mock Answer: " + question
-
     try:
         model = genai.GenerativeModel('gemini-flash-latest')
         image_path = os.path.join("temp_uploads", image_name)
-        
         if not os.path.exists(image_path):
-            return f"Error: Image '{image_name}' not found in temporal storage."
+            return f"Error: Image '{image_name}' not found."
             
         img = Image.open(image_path)
-        
-        prompt = f"""
-        You are a senior radiologist assistant. 
-        A doctor is asking a specific question about this X-ray: "{question}"
-        Provide a concise, clinically accurate answer based strictly on the visual evidence in the image.
-        """
-        
+        prompt = f"You are a radiologist. Answer: {question}"
         response = model.generate_content([prompt, img])
         return response.text.strip()
     except Exception as e:
-        print(f"Chat Interrogate Error: {e}")
-        return f"System was unable to analyze the image frame. Error: {str(e)}"
+        return f"System error: {str(e)}"
 
 def simulate_doctor_consult(history: list, latest_message: str) -> str:
-    if API_KEY == "LOCAL_TEST_MODE" or not API_KEY:
-        return "Mock Doctor: " + latest_message
-
     try:
-        # System instruction to set the persona
-        system_instruction = """
-        You are 'Med-AI', a professional and empathetic virtual physician. 
-        Your goal is to conduct a clinical interview with a patient to understand their symptoms.
-        - Be professional, concise, and empathetic.
-        - Ask clarifying questions about their symptoms (duration, severity, triggers).
-        - Provide preliminary medical insights but always include a disclaimer that you are an AI.
-        - Do not give definitive prescriptions, but suggest over-the-counter care or specialist visits if appropriate.
-        - Keep responses relatively short for voice synthesis compatibility.
+        model = genai.GenerativeModel('gemini-flash-latest')
+        
+        # Professional System Prompt
+        system_intro = """
+        You are 'Med-AI', a senior virtual physician conducting a clinical interview.
+        1. Ask 2 specific, clarifying questions to investigate symptoms.
+        2. DO NOT use asterisks (*) or markdown bolding.
+        3. Keep the tone professional.
+        4. Always put the Emergency Disclaimer at the bottom.
         """
-        
-        model = genai.GenerativeModel(
-            model_name='gemini-flash-latest',
-            system_instruction=system_instruction
-        )
-        
-        # Convert history to Gemini format
-        chat = model.start_chat(history=[
-            {"role": msg["role"], "parts": [msg["content"]]} for msg in history
-        ])
-        
-        response = chat.send_message(latest_message)
+
+        formatted_history = []
+        for msg in history:
+            role = "user" if msg["role"] == "user" else "model"
+            formatted_history.append({"role": role, "parts": [msg["content"]]})
+
+        chat = model.start_chat(history=formatted_history)
+        prompt = f"{system_intro}\n\nPatient: {latest_message}"
+        response = chat.send_message(prompt)
         return response.text.strip()
     except Exception as e:
-        print(f"Consult Chat Error: {e}")
-        return "I apologize, but I am having trouble connecting to my clinical knowledge base. Please try again in a moment."
+        print(f"Consult Error: {e}")
+        # Simplest fallback
+        try:
+            model = genai.GenerativeModel('gemini-flash-latest')
+            resp = model.generate_content(f"Doctor response to: {latest_message}")
+            return resp.text.strip()
+        except:
+            return "Connection established, but the neural engine is warming up. Please try again in a moment."

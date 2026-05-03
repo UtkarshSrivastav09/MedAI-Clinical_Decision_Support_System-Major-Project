@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { UploadCloud, Loader2, User, Thermometer, Activity, ClipboardList } from 'lucide-react';
 import ReportViewer from '../components/ReportViewer';
+import API_BASE_URL from '../api';
 import './Scanner.css';
 
 export default function Scanner() {
@@ -21,7 +22,7 @@ export default function Scanner() {
 
   useEffect(() => {
     const org = sessionStorage.getItem("organization") || "Med-AI Global";
-    fetch(`http://127.0.0.1:8000/api/scanner-meta?org=${encodeURIComponent(org)}`)
+    fetch(`${API_BASE_URL}/api/scanner-meta?org=${encodeURIComponent(org)}`)
       .then(r => r.json())
       .then(d => {
         setMetaDocs(d.doctors);
@@ -83,7 +84,7 @@ export default function Scanner() {
     formData.append("org", sessionStorage.getItem("organization") || "Med-AI Global");
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/scan", {
+      const response = await fetch(`${API_BASE_URL}/api/scan`, {
         method: "POST",
         body: formData,
       });

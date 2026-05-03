@@ -122,10 +122,20 @@ button {
   color: var(--accent-cyan);
 }
 
-.main-content {
+.main-content, .auth-main {
   flex: 1;
-  padding: 40px;
+  padding: 40px 40px 0 40px; /* Top, Left/Right, Bottom=0 */
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+@media (max-width: 900px) {
+  .main-content, .auth-main {
+    padding: 20px 20px 0 20px;
+    width: 100%;
+  }
 }
 
 /* Headings */

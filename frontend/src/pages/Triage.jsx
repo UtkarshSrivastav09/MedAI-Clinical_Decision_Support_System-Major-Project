@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Loader2, ArrowRight, X, Search } from 'lucide-react';
+import API_BASE_URL from '../api';
 import './Triage.css';
 
 export default function Triage() {
@@ -9,7 +10,7 @@ export default function Triage() {
 
   const fetchPatients = () => {
     const org = sessionStorage.getItem("organization") || "Med-AI Global";
-    fetch(`http://127.0.0.1:8000/api/patients?org=${encodeURIComponent(org)}`)
+    fetch(`${API_BASE_URL}/api/patients?org=${encodeURIComponent(org)}`)
       .then(res => res.json())
       .then(data => {
         setPatients(data);
@@ -20,7 +21,7 @@ export default function Triage() {
   useEffect(() => { fetchPatients(); }, []);
 
   const moveStatus = (id, status) => {
-    fetch('http://127.0.0.1:8000/api/triage/update', {
+    fetch(`${API_BASE_URL}/api/triage/update`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, status })
@@ -28,7 +29,7 @@ export default function Triage() {
   };
 
   const deletePatient = (id) => {
-    fetch(`http://127.0.0.1:8000/api/patients/${id}`, {
+    fetch(`${API_BASE_URL}/api/patients/${id}`, {
       method: 'DELETE'
     }).then(() => fetchPatients());
   };

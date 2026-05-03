@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Mic, Video, VideoOff, MicOff, PhoneOff, Send, MessageSquare, Activity } from 'lucide-react';
+import API_BASE_URL from '../api';
 import './Consult.css';
 
 export default function Consult() {
@@ -98,7 +99,7 @@ export default function Consult() {
         content: msg.content
       }));
 
-      const response = await fetch('http://127.0.0.1:8000/api/consult_chat', {
+      const response = await fetch(`${API_BASE_URL}/api/consult_chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -262,6 +263,17 @@ export default function Consult() {
           )}
           <div ref={chatEndRef} />
         </div>
+
+        {loading && (
+          <div className="neural-processing-orb">
+            <div className="orb-inner"></div>
+            <div className="orb-waves">
+              <div className="wave w1"></div>
+              <div className="wave w2"></div>
+              <div className="wave w3"></div>
+            </div>
+          </div>
+        )}
 
         <form className="chat-input-area" onSubmit={handleSend}>
           <div className="input-wrapper">

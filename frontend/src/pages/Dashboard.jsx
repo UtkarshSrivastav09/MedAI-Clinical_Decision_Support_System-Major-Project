@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Activity, Stethoscope, AlertOctagon, HeartPulse, ShieldAlert, Cpu, Building, Users, Sun, Moon, Clock, User, ClipboardList } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import API_BASE_URL from '../api';
 import './Dashboard.css';
 
 const COLORS = ['#00E5FF', '#A371F7', '#FF5252', '#00E676', '#FF9800'];
@@ -35,7 +36,7 @@ export default function Dashboard() {
   const username = sessionStorage.getItem("username") || "Clinician";
 
   useEffect(() => {
-    fetch(`http://127.0.0.1:8000/api/dashboard/stats?org=${encodeURIComponent(organization)}`)
+    fetch(`${API_BASE_URL}/api/dashboard/stats?org=${encodeURIComponent(organization)}`)
       .then(res => res.json())
       .then(data => setStats(data))
       .catch(err => console.error(err));
@@ -48,7 +49,7 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard-container animate-fade-in">
-      <div className="page-header">
+      <div className="page-header header-with-art">
         <div className="user-welcome-container">
           <div className="welcome-text">Diagnostic Commander</div>
           <h1 className="username-highlight">
@@ -60,6 +61,17 @@ export default function Dashboard() {
           <p className="subtitle" style={{ fontSize: '1rem', marginTop: '12px', opacity: 0.8 }}>
             Real-time telemetry, routing, and clinical access logs.
           </p>
+        </div>
+
+        <div className="header-art-container">
+          <div className="dna-spiral-wrapper">
+            <div className="dna-spiral">
+              {[...Array(24)].map((_, i) => (
+                <div key={i} className="dna-dot" style={{ '--i': i }}></div>
+              ))}
+            </div>
+            <div className="dna-label"></div>
+          </div>
         </div>
       </div>
 

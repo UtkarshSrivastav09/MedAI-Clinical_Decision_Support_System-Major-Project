@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Users, Search, AlertTriangle, DownloadCloud, Activity, Calendar, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import API_BASE_URL from '../api';
 import './PatientDatabase.css';
 
 // Helper to escape CSV fields safely
@@ -64,7 +65,7 @@ export default function PatientDatabase() {
 
   useEffect(() => {
     const org = sessionStorage.getItem("organization") || "Med-AI Global";
-    fetch(`http://127.0.0.1:8000/api/patients?org=${encodeURIComponent(org)}`)
+    fetch(`${API_BASE_URL}/api/patients?org=${encodeURIComponent(org)}`)
       .then(res => res.json())
       .then(data => {
         setPatients(data);

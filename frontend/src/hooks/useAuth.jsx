@@ -1,4 +1,5 @@
 import { useState } from "react";
+import API_BASE_URL from "../api";
 
 const useAuth = () => {
   const [error, setError] = useState("");
@@ -7,7 +8,7 @@ const useAuth = () => {
     try {
       setError("");
       
-      const res = await fetch("http://127.0.0.1:8000/api/auth/register", {
+      const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, email, password, organization }),
@@ -38,7 +39,7 @@ const useAuth = () => {
     try {
       setError("");
       
-      const res = await fetch("http://127.0.0.1:8000/api/auth/login", {
+      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),

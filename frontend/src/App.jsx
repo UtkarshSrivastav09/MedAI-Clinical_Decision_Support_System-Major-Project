@@ -121,6 +121,12 @@ function AppContent() {
           {/* Catch-all redirect */}
           <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} />} />
         </Routes>
+
+        {!isAuthPage && location.pathname !== '/help' && (
+          <footer className="global-footer">
+            © 2026 Med-AI Laboratory | Lead Architect: Utkarsh Srivastav
+          </footer>
+        )}
       </main>
     </div>
     </>
