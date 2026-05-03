@@ -80,11 +80,11 @@ export default function Consult() {
     }
   };
 
-  const handleSend = async (e) => {
+  const handleSend = async (e, directMessage = null) => {
     e?.preventDefault();
-    if (!message.trim() || loading) return;
+    const userMessage = directMessage || message.trim();
+    if (!userMessage || loading) return;
 
-    const userMessage = message.trim();
     setMessage('');
     
     // Add user message to UI immediately
@@ -146,6 +146,12 @@ export default function Consult() {
   const [isListening, setIsListening] = useState(false);
 
   const startVoiceInput = () => {
+    if (isListening) return;
+
+    // Immediately stop AI speech if user interrupts to provide vocal input
+    window.speechSynthesis.cancel();
+    setIsAISpeaking(false);
+
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       alert("Voice recognition is not supported in this browser. Please use Chrome or Edge.");
@@ -154,19 +160,26 @@ export default function Consult() {
 
     const recognition = new SpeechRecognition();
     recognition.lang = 'en-US';
-    recognition.interimResults = false;
+    recognition.interimResults = false; // Wait for the user to finish speaking
     recognition.maxAlternatives = 1;
 
     recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => setIsListening(false);
     
     recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
-      setMessage(transcript);
+      
+      // Directly communicate with AI, completely bypassing the input field
+      if (transcript.trim()) {
+        handleSend(null, transcript.trim());
+      }
     };
 
     recognition.onerror = (event) => {
       console.error("Speech recognition error", event.error);
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
       setIsListening(false);
     };
 
