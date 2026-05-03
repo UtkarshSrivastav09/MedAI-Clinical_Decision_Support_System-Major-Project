@@ -247,10 +247,15 @@
   }
 }
 
+@media (max-width: 900px) {
+  .auth-page {
+    background: transparent !important;
+  }
+}
+
 @media (max-width: 600px) {
   .auth-page {
     padding: 20px 15px;
-    background: transparent !important; /* Remove the black background */
     display: flex;
     align-items: center;
     justify-content: center;

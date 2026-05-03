@@ -189,8 +189,8 @@
   padding-bottom: 5px; /* Minimal space from very edge */
   padding-top: 20px;   /* Space from the content above */
   font-size: 0.75rem;
-  color: var(--text-secondary);
-  opacity: 0.5;
+  color: var(--text-primary);
+  opacity: 0.6;
   margin-top: auto;
   letter-spacing: 0.03em;
   font-family: 'Outfit', sans-serif;

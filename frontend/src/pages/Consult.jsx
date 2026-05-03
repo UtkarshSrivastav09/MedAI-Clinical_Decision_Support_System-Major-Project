@@ -143,6 +143,36 @@ export default function Consult() {
     setStream(null);
   };
 
+  const [isListening, setIsListening] = useState(false);
+
+  const startVoiceInput = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Voice recognition is not supported in this browser. Please use Chrome or Edge.");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+    
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setMessage(transcript);
+    };
+
+    recognition.onerror = (event) => {
+      console.error("Speech recognition error", event.error);
+      setIsListening(false);
+    };
+
+    recognition.start();
+  };
+
   if (!callActive) {
     return (
       <div className="consult-lobby animate-fade-in">
@@ -286,6 +316,17 @@ export default function Consult() {
             />
             {message.length > 0 && <span className="input-glow"></span>}
           </div>
+          
+          <button 
+            type="button" 
+            className={`mic-btn ${isListening ? 'listening' : ''}`} 
+            onClick={startVoiceInput}
+            disabled={loading}
+            title="Voice Input"
+          >
+            <Mic size={18} />
+          </button>
+
           <button type="submit" disabled={loading || !message.trim()} className={`send-btn ${message.trim() ? 'active' : ''}`}>
             <Send size={18} />
           </button>

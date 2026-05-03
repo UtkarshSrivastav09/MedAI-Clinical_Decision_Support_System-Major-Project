@@ -39,43 +39,68 @@ export default function Help() {
         <p>Comprehensive guide for users to navigate the platform and for examiners to understand the underlying technical architecture.</p>
       </div>
 
-      {/* LEAD ARCHITECT PROFILE */}
-      <div className="architect-profile glass-card" style={{marginBottom: '40px', padding: '40px', border: '1px solid var(--accent-purple)', background: 'linear-gradient(135deg, rgba(163, 113, 247, 0.05) 0%, rgba(0, 229, 255, 0.05) 100%)'}}>
-         <div style={{display: 'flex', gap: '32px', alignItems: 'center', flexWrap: 'wrap'}}>
-            <div className="architect-avatar" style={{width: '140px', height: '140px', borderRadius: '24px', overflow: 'hidden', border: '2px solid var(--accent-purple)', boxShadow: '0 10px 30px rgba(163, 113, 247, 0.3)'}}>
-               <img src="/Utkarsh Image.png" alt="Utkarsh Srivastav" style={{width: '100%', height: '100%', objectFit: 'cover'}} onError={(e) => { e.target.onerror = null; e.target.src = 'https://ui-avatars.com/api/?name=Utkarsh+Srivastav&background=A371F7&color=fff&size=128'; }} />
+      {/* LEAD ARCHITECT SECTION */}
+      <div className="architect-section animate-fade-in">
+        <div className="architect-card glass-card">
+          <div className="architect-main">
+            <div className="architect-visual">
+              <div className="avatar-container">
+                <img src="/Utkarsh Image.png" alt="Utkarsh Srivastav" onError={(e) => { e.target.onerror = null; e.target.src = 'https://ui-avatars.com/api/?name=Utkarsh+Srivastav&background=A371F7&color=fff&size=256'; }} />
+                <div className="avatar-ring"></div>
+              </div>
+              <div className="social-links-minimal">
+                <a href="https://www.linkedin.com/in/utkarsh-srivastav-b433bb33a" target="_blank" rel="noopener noreferrer" className="social-icon-btn linkedin">
+                  <img src="https://img.icons8.com/ios-filled/50/ffffff/linkedin.png" alt="LinkedIn" style={{ width: '22px', height: '22px' }} />
+                </a>
+                <a href="https://github.com/UtkarshSrivastav09" target="_blank" rel="noopener noreferrer" className="social-icon-btn github">
+                  <img src="https://img.icons8.com/ios-filled/50/ffffff/github.png" alt="GitHub" style={{ width: '22px', height: '22px' }} />
+                </a>
+                <a href="https://utkarshsrivastav09.github.io/Utkarsh-Portfolio/" target="_blank" rel="noopener noreferrer" className="social-icon-btn portfolio">
+                  <img src="https://img.icons8.com/ios-filled/50/ffffff/globe.png" alt="Portfolio" style={{ width: '22px', height: '22px' }} />
+                </a>
+              </div>
             </div>
-            <div className="architect-info" style={{flex: 1, minWidth: '300px'}}>
-               <div style={{display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px', flexWrap: 'wrap'}}>
-                  <h2 style={{margin: 0, fontSize: '2rem'}}>Utkarsh Srivastav</h2>
-                  <span className="status-pill online" style={{background: 'var(--accent-cyan)', color: '#000', fontSize: '0.7rem'}}>Lead Architect</span>
-               </div>
-               <p style={{fontSize: '1.1rem', color: 'var(--text-primary)', marginBottom: '12px', fontWeight: 600}}>Principal AI Research & System Engineering Lead</p>
-               
-               <div className="social-links" style={{display: 'flex', gap: '12px', marginBottom: '20px'}}>
-                  <a href="https://www.linkedin.com/in/utkarsh-srivastav-b433bb33a" target="_blank" rel="noopener noreferrer" className="social-btn" style={{display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', background: '#0077b5', color: '#fff', borderRadius: '8px', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600}}>
-                    LinkedIn
-                  </a>
-                  <a href="https://github.com/UtkarshSrivastav09" target="_blank" rel="noopener noreferrer" className="social-btn" style={{display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', background: '#24292e', color: '#fff', borderRadius: '8px', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600}}>
-                    GitHub
-                  </a>
-                  <a href="https://utkarshsrivastav09.github.io/Utkarsh-Portfolio/" target="_blank" rel="noopener noreferrer" className="social-btn" style={{display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', background: 'var(--accent-purple)', color: '#fff', borderRadius: '8px', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600}}>
-                    Portfolio
-                  </a>
-               </div>
 
-               <p style={{color: 'var(--text-secondary)', lineHeight: '1.6', fontSize: '0.95rem'}}>
-                  A visionary developer specialized in the intersection of <span style={{color: 'var(--accent-cyan)', fontWeight: 700}}>Generative AI</span> and <span style={{color: 'var(--accent-purple)', fontWeight: 700}}>Clinical Radiology</span>. 
-                  Architected the entire Med-AI ecosystem, focusing on <span style={{color: 'var(--accent-cyan)', fontWeight: 700}}>high-fidelity diagnostic accuracy</span>, 
-                  <span style={{color: 'var(--accent-purple)', fontWeight: 700}}> multimodal medical imaging</span>, and <span style={{color: 'var(--accent-cyan)', fontWeight: 700}}>secure EHR integration</span>.
-               </p>
-               <div className="skills-tags" style={{display: 'flex', gap: '10px', marginTop: '16px', flexWrap: 'wrap'}}>
-                  <span style={{padding: '6px 12px', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', fontSize: '0.8rem', color: 'var(--accent-cyan)', border: '1px solid rgba(0,229,255,0.2)'}}>Neural Networks</span>
-                  <span style={{padding: '6px 12px', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', fontSize: '0.8rem', color: 'var(--accent-purple)', border: '1px solid rgba(163,113,247,0.2)'}}>Multimodal AI</span>
-                  <span style={{padding: '6px 12px', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', fontSize: '0.8rem', color: 'var(--success)', border: '1px solid rgba(0,230,118,0.2)'}}>Full-Stack MedTech</span>
-               </div>
+            <div className="architect-details">
+              <div className="details-header">
+                <div className="name-group">
+                  <h2>Utkarsh Srivastav</h2>
+                  <span className="architect-badge">Founder & Lead Architect</span>
+                </div>
+                <p className="professional-title">Principal AI Research & System Engineering Lead</p>
+              </div>
+
+              <div className="details-body">
+                <div className="bio-segment">
+                  <h3><Info size={16} /> Technical Vision</h3>
+                  <p>
+                    A visionary developer specialized in the intersection of <span className="highlight-cyan">Generative AI</span> and <span className="highlight-purple">Clinical Radiology</span>. 
+                    Architected the entire Med-AI ecosystem from the ground up, focusing on bridging the gap between <span className="highlight-cyan">Neural LLMs</span> and real-world medical diagnostics.
+                  </p>
+                </div>
+
+                <div className="achievements-grid">
+                  <div className="achievement-item">
+                    <Activity size={16} className="ach-icon" />
+                    <span>Multimodal AI Orchestration</span>
+                  </div>
+                  <div className="achievement-item">
+                    <ShieldAlert size={16} className="ach-icon" />
+                    <span>Secure EHR Data Isolation</span>
+                  </div>
+                  <div className="achievement-item">
+                    <Layers size={16} className="ach-icon" />
+                    <span>Decoupled API Architecture</span>
+                  </div>
+                  <div className="achievement-item">
+                    <Award size={16} className="ach-icon" />
+                    <span>Precision Diagnostic Engine</span>
+                  </div>
+                </div>
+              </div>
             </div>
-         </div>
+          </div>
+        </div>
       </div>
 
       <div className="help-grid">
@@ -142,25 +167,35 @@ export default function Help() {
       {/* NEW: NEURAL ARCHITECTURE PIPELINE */}
       <div className="pipeline-section glass-card" style={{marginTop: '32px', padding: '32px'}}>
          <h2 className="section-title"><Activity size={20} /> Neural Processing Pipeline</h2>
-         <div className="pipeline-flow" style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap', marginTop: '24px'}}>
+         <div className="pipeline-flow">
             <div className="pipeline-node">
                <div className="node-icon" style={{background: 'rgba(0, 229, 255, 0.1)'}}><LayoutDashboard size={24} color="var(--accent-cyan)" /></div>
                <span>Image Input</span>
             </div>
-            <div className="pipeline-arrow">→</div>
+            
+            <div className="pipeline-node">
+               <div className="node-icon" style={{background: 'rgba(0, 230, 118, 0.1)'}}><ShieldAlert size={24} color="var(--success)" /></div>
+               <span>Data Security</span>
+            </div>
+
             <div className="pipeline-node">
                <div className="node-icon" style={{background: 'rgba(163, 113, 247, 0.1)'}}><Cpu size={24} color="var(--accent-purple)" /></div>
-               <span>FastAPI Processing</span>
+               <span>FastAPI Bridge</span>
             </div>
-            <div className="pipeline-arrow">→</div>
+
             <div className="pipeline-node highlight">
                <div className="node-icon" style={{background: 'var(--accent-gradient)'}}><Activity size={24} color="#000" /></div>
-               <span>Gemini 1.5 Analysis</span>
+               <span>Neural Engine</span>
             </div>
-            <div className="pipeline-arrow">→</div>
+
             <div className="pipeline-node">
-               <div className="node-icon" style={{background: 'rgba(0, 230, 118, 0.1)'}}><ClipboardList size={24} color="var(--success)" /></div>
-               <span>PDF Generation</span>
+               <div className="node-icon" style={{background: 'rgba(255, 171, 0, 0.1)'}}><Database size={24} color="#ffab00" /></div>
+               <span>EHR Sync</span>
+            </div>
+
+            <div className="pipeline-node">
+               <div className="node-icon" style={{background: 'rgba(0, 229, 255, 0.1)'}}><ClipboardList size={24} color="var(--accent-cyan)" /></div>
+               <span>Final Report</span>
             </div>
          </div>
       </div>
@@ -195,7 +230,7 @@ export default function Help() {
             showcasing the secure and efficient integration of Neural LLMs in modern healthcare ecosystems.
          </p>
          
-         <div style={{marginTop: '32px', fontSize: '0.7rem', color: 'var(--text-secondary)', opacity: 0.5, fontStyle: 'italic'}}>
+         <div style={{marginTop: '32px', fontSize: '0.7rem', color: 'var(--text-primary)', opacity: 0.6, fontStyle: 'italic'}}>
             © 2026 Med-AI Laboratory | Lead Architect: Utkarsh Srivastav
          </div>
       </div>
