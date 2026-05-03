@@ -217,8 +217,20 @@ def get_scanner_meta(organization: str):
     cursor.execute('SELECT DISTINCT referring_doctor FROM patients WHERE organization = ?', (organization,))
     existing_docs = [r[0] for r in cursor.fetchall()]
     
-    # Merge existing doctors with our official hospital staff list, ensuring no duplicates
-    all_docs = list(set(HOSPITAL_STAFF + existing_docs))
+    # Clean and merge existing doctors with official staff, ensuring no duplicates like "Dr. Dr. "
+    cleaned_docs = []
+    for d in (HOSPITAL_STAFF + existing_docs):
+        if not d: continue
+        
+        # ONLY keep doctors that have a specialty in parentheses, per user request
+        if "(" not in d or ")" not in d:
+            continue
+            
+        # Strip all variations of Dr. prefix to get the raw name
+        raw_name = d.replace("Dr. Dr. ", "").replace("Dr. ", "").replace("Dr ", "").strip()
+        cleaned_docs.append(f"Dr. {raw_name}")
+        
+    all_docs = list(set(cleaned_docs))
     all_docs.sort()
     
     cursor.execute('SELECT MAX(id), patient_name, age, gender, blood_pressure, temperature, phone, email FROM patients WHERE organization = ? GROUP BY patient_name', (organization,))

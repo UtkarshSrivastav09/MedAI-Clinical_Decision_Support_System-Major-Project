@@ -288,7 +288,7 @@ export default function ReportViewer({ report, patient, imageName, preview, pati
          </div>
 
          {/* GHOST PDF TEMPLATE (Hidden but visible to capture engine) */}
-         <div style={{ position: 'absolute', top: '-20000px', left: 0, width: '800px', pointerEvents: 'none' }}>
+         <div style={{ position: 'absolute', top: '-20000px', left: '-10000px', width: '800px', pointerEvents: 'none' }}>
             <div id="premium-report-template" style={{ background: '#fff' }}>
                <div className="pdf-header">
                   <div className="pdf-logo">

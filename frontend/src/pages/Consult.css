@@ -73,6 +73,8 @@
   display: flex;
   gap: 24px;
   height: calc(100vh - 100px);
+  padding: 0 32px 32px 32px;
+  box-sizing: border-box;
 }
 
 /* Video Area (Left) */
@@ -542,18 +544,36 @@
 }
 
 @media (max-width: 900px) {
-  .consult-container { flex-direction: column; height: auto; }
-  .video-area { min-height: 450px; }
-  .chat-area { max-width: 100%; min-height: 500px; }
-  .patient-pip { width: 160px; height: 100px; }
+  .consult-container { 
+    flex-direction: column; 
+    height: calc(100vh - 90px); /* Lock to viewport height to prevent page scroll */
+    padding: 0 20px 20px 20px;
+    box-sizing: border-box;
+  }
+  .video-area { 
+    flex: none;
+    height: 35vh; /* Use percentage of screen for video */
+    min-height: 250px; 
+  }
+  .chat-area { 
+    flex: 1; 
+    max-width: 100%; 
+    min-height: 0; /* Crucial for internal scrolling */
+    margin-bottom: 10px;
+  }
+  .patient-pip { width: 140px; height: 90px; }
 }
 
 @media (max-width: 600px) {
   .consult-container {
-    gap: 16px;
+    gap: 12px;
+    height: calc(100vh - 80px);
+    padding: 0 12px 12px 12px;
+    box-sizing: border-box;
   }
   .video-area {
-    min-height: 350px;
+    height: 35vh;
+    min-height: 260px;
     border-radius: 16px;
   }
   .ai-core {
@@ -592,8 +612,8 @@
     padding: 6px 12px;
   }
   .ai-status-panel {
-    margin-top: 30px;
-    padding: 8px 16px;
+    margin-top: 10px;
+    padding: 6px 14px;
   }
   .status-text {
     font-size: 0.65rem;

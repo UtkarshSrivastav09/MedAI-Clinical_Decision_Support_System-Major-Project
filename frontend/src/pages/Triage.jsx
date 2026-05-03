@@ -52,7 +52,7 @@ export default function Triage() {
          <div className="patient-avatar">{getInitials(p.name)}</div>
          <div className="patient-info">
            <h4>{p.name}</h4>
-           <p className="subtext">{p.age} yr | Dr. {p.doctor}</p>
+           <p className="subtext">{p.age} yr | {p.doctor}</p>
          </div>
          {p.requires_followup && <div className="critical-pulse" title="High Priority / Follow-up Required"></div>}
        </div>
