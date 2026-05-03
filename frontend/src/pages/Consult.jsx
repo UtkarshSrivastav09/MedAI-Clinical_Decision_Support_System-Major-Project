@@ -20,7 +20,7 @@ export default function Consult() {
   // Initialize camera
   useEffect(() => {
     if (callActive) {
-      navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+      navigator.mediaDevices.getUserMedia({ video: true, audio: false })
         .then(mediaStream => {
           setStream(mediaStream);
           if (videoRef.current) {
@@ -129,10 +129,10 @@ export default function Consult() {
   };
 
   const toggleAudio = () => {
-    if (stream) {
+    if (stream && stream.getAudioTracks().length > 0) {
       stream.getAudioTracks()[0].enabled = !hasAudio;
-      setHasAudio(!hasAudio);
     }
+    setHasAudio(!hasAudio);
   };
 
   const endCall = () => {
