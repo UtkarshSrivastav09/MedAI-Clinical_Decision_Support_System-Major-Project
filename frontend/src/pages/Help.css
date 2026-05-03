@@ -405,3 +405,36 @@
     justify-content: center;
   }
 }
+
+/* Light Mode Overrides for Visibility */
+:root[data-theme='light'] .help-hero h1 {
+  background: linear-gradient(to right, var(--text-primary), var(--accent-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+:root[data-theme='light'] .step-number {
+  color: rgba(0, 0, 0, 0.05);
+}
+
+:root[data-theme='light'] .tech-card {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.05);
+}
+
+:root[data-theme='light'] .tech-card:hover {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: var(--accent-purple);
+}
+
+:root[data-theme='light'] .architect-profile {
+  background: linear-gradient(135deg, rgba(163, 113, 247, 0.02) 0%, rgba(0, 229, 255, 0.02) 100%) !important;
+}
+
+:root[data-theme='light'] .pipeline-node span {
+  color: var(--text-primary);
+}
+
+:root[data-theme='light'] .node-icon {
+  background: rgba(0, 0, 0, 0.03) !important;
+}

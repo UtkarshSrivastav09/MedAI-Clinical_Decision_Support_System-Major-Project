@@ -100,7 +100,15 @@ function AppContent() {
             <button className="mobile-menu-btn" onClick={() => setIsSidebarOpen(true)}>
               <Menu size={24} />
             </button>
-            <button className="theme-toggle-btn" onClick={toggleTheme} title="Toggle Theme">
+            <button 
+              className="theme-toggle-btn" 
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleTheme();
+              }} 
+              title="Toggle Theme"
+            >
               {isLightMode ? <Moon size={20} /> : <Sun size={20} />}
             </button>
           </div>
