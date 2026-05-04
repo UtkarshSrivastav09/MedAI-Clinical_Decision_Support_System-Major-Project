@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FileText, HeartPulse, ActivitySquare, TestTube, Stethoscope, Download, ShieldAlert, Zap, Info, ArrowLeft, Clock, MessageSquare, Send, CheckCircle2, Award, ClipboardCheck, X } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
 import './ReportViewer.css';
+import API_BASE_URL from '../api';
 
 export default function ReportViewer({ report, patient, imageName, preview, patient_id, onReset }) {
    const [chatQ, setChatQ] = useState("");
@@ -45,7 +46,7 @@ export default function ReportViewer({ report, patient, imageName, preview, pati
       setChatQ("");
 
       try {
-         const res = await fetch("http://127.0.0.1:8000/api/chat", { method: "POST", body: fd });
+         const res = await fetch(`${API_BASE_URL}/api/chat`, { method: "POST", body: fd });
          const data = await res.json();
          setChatLog(prev => [...prev, { role: 'ai', text: data.answer }]);
       } catch {
@@ -57,7 +58,7 @@ export default function ReportViewer({ report, patient, imageName, preview, pati
    const handleOverride = async () => {
       if (!overrideText || !patient_id) return;
       try {
-         await fetch("http://127.0.0.1:8000/api/override", {
+         await fetch(`${API_BASE_URL}/api/override`, {
             method: "POST",
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id: patient_id, note: overrideText })
@@ -76,7 +77,7 @@ export default function ReportViewer({ report, patient, imageName, preview, pati
       setTranslation(prev => ({ ...prev, loading: true, lang: targetLang }));
       try {
          const textToTranslate = `${layman?.layman_summary || ""} Findings: ${layman?.layman_findings || ""}`;
-         const res = await fetch("http://127.0.0.1:8000/api/translate", {
+         const res = await fetch(`${API_BASE_URL}/api/translate`, {
             method: "POST",
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text: textToTranslate, target_lang: targetLang })
