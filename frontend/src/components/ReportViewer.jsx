@@ -267,13 +267,22 @@ export default function ReportViewer({ report, patient, imageName, preview, pati
                       <div className={`meta-badge severity-${displaySeverity}`}><ShieldAlert size={16} /> Severity: {isHealthy ? 'Normal / Healthy' : displaySeverity}</div>
                       <div className="meta-badge confidence-badge"><Zap size={16} /> Confidence: {displayConfidence}%</div>
                       
-                      <button 
-                         onClick={() => handleTranslate(translation.active ? 'English' : 'Hindi')}
-                         className={`meta-badge translation-toggle ${translation.active ? 'active' : ''}`}
-                         style={{ cursor: 'pointer', border: '1px solid var(--accent-cyan)', background: translation.active ? 'var(--accent-cyan)' : 'transparent', color: translation.active ? '#000' : 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700 }}
-                      >
-                         <Info size={14} /> {translation.loading ? 'Translating...' : (translation.active ? 'Show English' : 'Translate to Hindi')}
-                      </button>
+                      <div className="translation-hub">
+                         <button 
+                            onClick={() => handleTranslate('English')}
+                            className={`lang-pill ${!translation.active ? 'active' : ''}`}
+                            disabled={translation.loading}
+                         >
+                            English
+                         </button>
+                         <button 
+                            onClick={() => handleTranslate('Hindi')}
+                            className={`lang-pill ${translation.active && translation.lang === 'Hindi' ? 'active' : ''}`}
+                            disabled={translation.loading}
+                         >
+                            {translation.loading && translation.lang === 'Hindi' ? 'Translating...' : 'Hindi'}
+                         </button>
+                      </div>
                    </div>
 
                   <div className="report-section">
