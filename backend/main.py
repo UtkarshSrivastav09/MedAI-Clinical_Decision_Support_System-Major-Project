@@ -26,6 +26,10 @@ def startup_event():
     init_db()
     os.makedirs("temp_uploads", exist_ok=True)
 
+@app.get("/api/ping")
+def ping():
+    return {"status": "online", "message": "Neural core initialized"}
+
 @app.get("/", response_class=HTMLResponse)
 def read_root():
     return """

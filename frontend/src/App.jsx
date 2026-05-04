@@ -10,12 +10,14 @@ import Triage from './pages/Triage';
 import Consult from './pages/Consult';
 import Help from './pages/Help';
 import Preloader from './components/Preloader';
+import API_BASE_URL from './api';
 import "./index.css";
 import "./App.css";
 
 function NavLinks({ setAuth, isOpen, setIsOpen }) {
   const location = useLocation();
   const isActive = (path) => location.pathname === path ? 'active' : '';
+  const username = sessionStorage.getItem("username");
 
   const handleLogout = () => {
     sessionStorage.clear();
@@ -45,7 +47,9 @@ function NavLinks({ setAuth, isOpen, setIsOpen }) {
           <Link to="/" onClick={handleNavClick} className={`nav-item ${isActive('/')}`}><LayoutDashboard size={18} /> Admin Dashboard</Link>
           <Link to="/consult" onClick={handleNavClick} className={`nav-item ${isActive('/consult')}`}><Video size={18} /> AI TeleConsult</Link>
           <Link to="/scanner" onClick={handleNavClick} className={`nav-item ${isActive('/scanner')}`}><Activity size={18} /> Analyze X-Ray</Link>
-          <Link to="/triage" onClick={handleNavClick} className={`nav-item ${isActive('/triage')}`}><Layers size={18} /> Clinical Workflow</Link>
+          {username === 'admin' && (
+            <Link to="/triage" onClick={handleNavClick} className={`nav-item ${isActive('/triage')}`}><Layers size={18} /> Clinical Workflow</Link>
+          )}
           <Link to="/database" onClick={handleNavClick} className={`nav-item ${isActive('/database')}`}><Database size={18} /> Patient Records</Link>
           <Link to="/help" onClick={handleNavClick} className={`nav-item ${isActive('/help')}`} style={{ color: 'var(--accent-cyan)' }}><HelpCircle size={18} /> About & Help</Link>
         </div>
@@ -71,6 +75,10 @@ function AppContent() {
   const location = useLocation();
 
   useEffect(() => {
+    // WAKE UP BACKEND (Render Cold Start Mitigation)
+    console.log("🚀 Warming up neural core...");
+    fetch(`${API_BASE_URL}/api/ping`).catch(() => {});
+
     // Simulate initial heavy loading for the neural core
     const timer = setTimeout(() => {
       setIsAppLoading(false);
@@ -122,7 +130,14 @@ function AppContent() {
           <Route path="/" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} />
           <Route path="/consult" element={isAuthenticated ? <Consult /> : <Navigate to="/login" />} />
           <Route path="/scanner" element={isAuthenticated ? <Scanner /> : <Navigate to="/login" />} />
-          <Route path="/triage" element={isAuthenticated ? <Triage /> : <Navigate to="/login" />} />
+          <Route 
+            path="/triage" 
+            element={
+              isAuthenticated && sessionStorage.getItem("username") === 'admin' 
+                ? <Triage /> 
+                : <Navigate to="/" />
+            } 
+          />
           <Route path="/database" element={isAuthenticated ? <PatientDatabase /> : <Navigate to="/login" />} />
           <Route path="/help" element={isAuthenticated ? <Help /> : <Navigate to="/login" />} />
 
