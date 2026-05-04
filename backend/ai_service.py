@@ -147,7 +147,17 @@ def translate_clinical_text(text: str, target_lang: str) -> str:
     for attempt in range(len(keys)):
         try:
             model = get_rotated_model("gemini-flash-latest")
-            prompt = f"Translate the following medical text into {target_lang} for a patient. Keep the medical meaning accurate but easy to understand for a common person. DO NOT use markdown bolding or asterisks. Text: {text}"
+            prompt = f"""
+            Translate the following clinical text strictly into {target_lang}. 
+            REQUIREMENTS:
+            1. The ENTIRE response must be in {target_lang} only. 
+            2. Use a professional, empathetic, and clear clinical tone (suitable for a patient).
+            3. Do not include any English words or explanations in the response.
+            4. DO NOT use markdown bolding, asterisks, or special characters.
+            
+            TEXT TO TRANSLATE:
+            {text}
+            """
             response = model.generate_content(prompt)
             return response.text.strip()
         except Exception as e:
