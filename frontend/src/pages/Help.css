@@ -219,9 +219,10 @@
 .status-pill {
   font-size: 0.75rem;
   font-weight: 800;
-  padding: 4px 12px;
-  border-radius: 20px;
+  padding: 6px 16px;
+  border-radius: 99px;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .status-pill.online {
@@ -406,7 +407,6 @@
     height: 50px;
   }
 }
-
 @media (max-width: 600px) {
   .tech-stack-grid {
     grid-template-columns: 1fr;
@@ -414,6 +414,15 @@
   .status-grid {
     grid-template-columns: 1fr;
     gap: 12px;
+  }
+  .status-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .status-pill {
+    padding: 4px 12px;
+    font-size: 0.7rem;
   }
   .performance-metrics {
     grid-template-columns: 1fr !important;
@@ -427,6 +436,151 @@
   .social-links a {
     width: 100%;
     justify-content: center;
+  }
+}
+
+/* TERMINAL CONSOLE */
+.terminal-card {
+  padding: 0 !important;
+  overflow: hidden;
+  border: 1px solid rgba(0, 229, 255, 0.2) !important;
+  display: flex;
+  flex-direction: column;
+}
+
+.terminal-header {
+  background: rgba(0, 0, 0, 0.4);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.terminal-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.terminal-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.terminal-dots span:nth-child(1) { background: #ff5f56; }
+.terminal-dots span:nth-child(2) { background: #ffbd2e; }
+.terminal-dots span:nth-child(3) { background: #27c93f; }
+
+.terminal-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  opacity: 0.8;
+}
+
+.terminal-body {
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.6);
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.85rem;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.log-line {
+  color: #fff;
+  opacity: 0.9;
+}
+
+.log-time { color: var(--text-secondary); margin-right: 8px; }
+.log-tag { font-weight: 800; margin-right: 8px; font-size: 0.75rem; }
+.log-tag.info { color: var(--accent-cyan); }
+.log-tag.success { color: #00e676; }
+.log-tag.warn { color: #ffab00; }
+
+.blinking-cursor {
+  color: var(--accent-cyan);
+  font-weight: 700;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ETHICS SECTION */
+.ethics-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 16px;
+}
+
+.ethics-item {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.eth-icon {
+  width: 32px;
+  height: 32px;
+  background: rgba(163, 113, 247, 0.1);
+  color: var(--accent-purple);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.eth-text strong {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.eth-text p {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+@media (max-width: 1024px) {
+  .extra-sections-grid {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .terminal-body {
+    font-size: 0.75rem;
+    padding: 12px;
+    min-height: 180px;
+  }
+  .log-tag {
+    font-size: 0.65rem;
+    margin-right: 4px;
+  }
+  .log-time {
+    display: none; /* Hide time on very small screens to save space */
+  }
+  .ethics-item {
+    gap: 12px;
+  }
+  .eth-icon {
+    width: 28px;
+    height: 28px;
+  }
+  .eth-text strong {
+    font-size: 0.85rem;
   }
 }
 
@@ -598,18 +752,49 @@
 }
 
 .bio-segment h3 {
-  font-size: 1rem;
-  margin-bottom: 12px;
+  font-size: 0.9rem;
+  margin-bottom: 16px;
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--text-primary);
+  color: var(--accent-cyan);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 700;
+}
+
+.vision-quote-block {
+  border-left: 3px solid var(--accent-purple);
+  padding-left: 20px;
+  background: rgba(163, 113, 247, 0.03);
+  border-radius: 0 12px 12px 0;
+  padding: 16px 20px;
 }
 
 .bio-segment p {
   color: var(--text-secondary);
-  line-height: 1.7;
-  font-size: 1rem;
+  line-height: 1.8;
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .vision-quote-block {
+    border-left: 2px solid var(--accent-purple);
+    border-top: none;
+    padding: 5px 0 5px 20px;
+    margin: 15px 0;
+    background: rgba(163, 113, 247, 0.02);
+    border-radius: 0;
+    text-align: left;
+  }
+  .bio-segment p {
+    font-size: 0.9rem;
+    line-height: 1.7;
+    font-style: italic;
+    color: var(--text-primary);
+    opacity: 0.9;
+  }
 }
 
 .highlight-cyan { color: var(--accent-cyan); font-weight: 700; }

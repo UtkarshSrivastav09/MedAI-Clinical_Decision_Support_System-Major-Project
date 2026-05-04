@@ -64,7 +64,7 @@ export default function Scanner() {
   const handleChange = (e) => setForm({...form, [e.target.name]: e.target.value});
 
   const handleScan = async () => {
-    if (!file) { setError("Must upload an X-ray first."); return; }
+    if (!file) { setError("Must upload a medical image first."); return; }
     if (!form.name) { setError("Patient Name is required."); return; }
     
     setLoading(true);
@@ -116,8 +116,13 @@ export default function Scanner() {
       </datalist>
 
       <div className="scanner-header">
-        <h1>AI Diagnostics Console</h1>
-        <p className="subtitle">Select an existing patient from the dropdown to automatically retrieve past vitals and enable Longitudinal Case Tracking algorithms.</p>
+        <h1>Clinical Imaging AI</h1>
+        <p className="subtitle vibrant-subtitle">
+          <span className="gradient-badge">Universal Diagnostics:</span> Securely upload and analyze 
+          <span className="text-highlight-cyan"> X-Rays</span>, 
+          <span className="text-highlight-purple"> Ultrasounds</span>, 
+          and Multi-Modal scans for instantaneous AI-driven clinical insights.
+        </p>
       </div>
 
       <div className="scanner-layout">
@@ -180,7 +185,7 @@ export default function Scanner() {
             </div>
           ) : (
             <div className="glass-card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <h3 className="section-title"><Activity size={20}/> Radiology Upload</h3>
+              <h3 className="section-title"><Activity size={20}/> Medical Imaging Upload</h3>
               <label className="upload-dropzone" style={{ flex: 1, marginTop: '12px', padding: preview ? 0 : '16px' }}>
                 <input type="file" accept="image/*" onChange={handleFileChange} hidden />
                 {preview ? (
@@ -190,7 +195,7 @@ export default function Scanner() {
                 ) : (
                   <div className="dropzone-content">
                     <UploadCloud size={48} color="var(--accent-cyan)" />
-                    <p>Click or drag X-Ray image here</p>
+                    <p>Click or drag medical image here (X-Ray, Ultrasound, etc.)</p>
                   </div>
                 )}
               </label>

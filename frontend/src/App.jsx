@@ -46,7 +46,7 @@ function NavLinks({ setAuth, isOpen, setIsOpen }) {
         <div className="nav-links">
           <Link to="/" onClick={handleNavClick} className={`nav-item ${isActive('/')}`}><LayoutDashboard size={18} /> Admin Dashboard</Link>
           <Link to="/consult" onClick={handleNavClick} className={`nav-item ${isActive('/consult')}`}><Video size={18} /> AI TeleConsult</Link>
-          <Link to="/scanner" onClick={handleNavClick} className={`nav-item ${isActive('/scanner')}`}><Activity size={18} /> Analyze X-Ray</Link>
+          <Link to="/scanner" onClick={handleNavClick} className={`nav-item ${isActive('/scanner')}`}><Activity size={18} /> Clinical Imaging</Link>
           {username === 'admin' && (
             <Link to="/triage" onClick={handleNavClick} className={`nav-item ${isActive('/triage')}`}><Layers size={18} /> Clinical Workflow</Link>
           )}

@@ -221,6 +221,11 @@
   100% { transform: rotate(360deg); }
 }
 
+.scanner-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
 .scanner-header h1 {
   font-size: 2.5rem;
   background: linear-gradient(to right, #A371F7, #00E5FF);
@@ -228,6 +233,7 @@
   background-clip: text;
   -webkit-text-fill-color: transparent;
   margin-bottom: 12px;
+  display: inline-block;
 }
 
 @media (max-width: 768px) {
@@ -243,8 +249,12 @@
     font-size: 1.8rem;
     margin-bottom: 10px;
   }
+  .scanner-header {
+    margin-bottom: 24px;
+    padding: 0 10px;
+  }
   .scanner-header p {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
   }
   .form-section.glass-card, 
   .upload-section .glass-card {
@@ -290,5 +300,63 @@
     flex-wrap: wrap;
     justify-content: center;
     gap: 8px;
+  }
+}
+.vibrant-subtitle {
+  line-height: 1.6;
+  max-width: 800px;
+  margin: 0 auto 30px;
+}
+
+.gradient-badge {
+  background: var(--accent-gradient);
+  color: #000;
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-weight: 800;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  margin-right: 8px;
+  display: inline-block;
+  box-shadow: 0 4px 15px rgba(0, 229, 255, 0.3);
+}
+
+.text-highlight-cyan {
+  color: var(--accent-cyan);
+  font-weight: 700;
+  text-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+}
+
+.text-highlight-purple {
+  color: var(--accent-purple);
+  font-weight: 700;
+  text-shadow: 0 0 10px rgba(163, 113, 247, 0.3);
+}
+
+@media (max-width: 768px) {
+  .vibrant-subtitle {
+    font-size: 0.85rem;
+    padding: 0 15px;
+  }
+  .gradient-badge {
+    font-size: 0.65rem;
+    padding: 2px 8px;
+    margin-bottom: 6px;
+    display: inline-block;
+  }
+}
+
+@media (max-width: 480px) {
+  .scanner-header h1 {
+    font-size: 1.4rem;
+  }
+  .vibrant-subtitle {
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+  .gradient-badge {
+    display: block;
+    width: fit-content;
+    margin: 0 auto 8px;
   }
 }

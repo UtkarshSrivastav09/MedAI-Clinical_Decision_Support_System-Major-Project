@@ -73,10 +73,12 @@ export default function Help() {
               <div className="details-body">
                 <div className="bio-segment">
                   <h3><Info size={16} /> Technical Vision</h3>
-                  <p>
-                    A visionary developer specialized in the intersection of <span className="highlight-cyan">Generative AI</span> and <span className="highlight-purple">Clinical Radiology</span>. 
-                    Architected the entire Med-AI ecosystem from the ground up, focusing on bridging the gap between <span className="highlight-cyan">Neural LLMs</span> and real-world medical diagnostics.
-                  </p>
+                  <div className="vision-quote-block">
+                    <p>
+                      A visionary developer specialized in the intersection of <span className="highlight-cyan">Generative AI</span> and <span className="highlight-purple">Clinical Radiology</span>. 
+                      Architected the entire Med-AI ecosystem from the ground up, focusing on bridging the gap between <span className="highlight-cyan">Neural LLMs</span> and real-world medical diagnostics.
+                    </p>
+                  </div>
                 </div>
 
                 <div className="achievements-grid">
@@ -177,25 +179,72 @@ export default function Help() {
                <div className="node-icon" style={{background: 'rgba(0, 230, 118, 0.1)'}}><ShieldAlert size={24} color="var(--success)" /></div>
                <span>Data Security</span>
             </div>
-
+ 
             <div className="pipeline-node">
                <div className="node-icon" style={{background: 'rgba(163, 113, 247, 0.1)'}}><Cpu size={24} color="var(--accent-purple)" /></div>
                <span>FastAPI Bridge</span>
             </div>
-
+ 
             <div className="pipeline-node highlight">
                <div className="node-icon" style={{background: 'var(--accent-gradient)'}}><Activity size={24} color="#000" /></div>
                <span>Neural Engine</span>
             </div>
-
+ 
             <div className="pipeline-node">
                <div className="node-icon" style={{background: 'rgba(255, 171, 0, 0.1)'}}><Database size={24} color="#ffab00" /></div>
                <span>EHR Sync</span>
             </div>
-
+ 
             <div className="pipeline-node">
                <div className="node-icon" style={{background: 'rgba(0, 229, 255, 0.1)'}}><ClipboardList size={24} color="var(--accent-cyan)" /></div>
                <span>Final Report</span>
+            </div>
+         </div>
+      </div>
+ 
+      {/* NEW: DEVELOPER TERMINAL & ETHICS */}
+      <div className="extra-sections-grid" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '32px', marginTop: '32px' }}>
+         {/* TERMINAL CONSOLE */}
+         <div className="terminal-card glass-card">
+            <div className="terminal-header">
+               <div className="terminal-dots"><span></span><span></span><span></span></div>
+               <div className="terminal-title">Neural_Core_v1.5.sh</div>
+            </div>
+            <div className="terminal-body custom-scroll">
+               <div className="log-line"><span className="log-time">[10:04:22]</span> <span className="log-tag info">[INFO]</span> Initializing Gemini 1.5 Multi-Modal Weights...</div>
+               <div className="log-line"><span className="log-time">[10:04:23]</span> <span className="log-tag success">[OK]</span> Neural Core 128-bit Handshake established.</div>
+               <div className="log-line"><span className="log-time">[10:04:25]</span> <span className="log-tag warn">[WARN]</span> Latency spike in API Gateway (1.2s) - Adjusting TTL...</div>
+               <div className="log-line"><span className="log-time">[10:04:26]</span> <span className="log-tag info">[INFO]</span> EHR Directory Isolation: ACTIVE.</div>
+               <div className="log-line"><span className="log-time">[10:04:28]</span> <span className="log-tag success">[OK]</span> Patient Data Encryption: AES-256 Enabled.</div>
+               <div className="log-line blinking-cursor">&gt; System Ready for Clinical Input..._</div>
+            </div>
+         </div>
+ 
+         {/* ETHICS & SAFETY */}
+         <div className="ethics-card glass-card">
+            <h3 className="section-title"><ShieldAlert size={18}/> Clinical Safety & Ethics</h3>
+            <div className="ethics-list">
+               <div className="ethics-item">
+                  <div className="eth-icon"><Award size={16}/></div>
+                  <div className="eth-text">
+                     <strong>HIPAA Data Isolation</strong>
+                     <p>Patient identifiers are never cached or exposed to external LLM training loops.</p>
+                  </div>
+               </div>
+               <div className="ethics-item">
+                  <div className="eth-icon"><ShieldAlert size={16}/></div>
+                  <div className="eth-text">
+                     <strong>Bias Mitigation</strong>
+                     <p>Algorithms audited for diagnostic parity across diverse clinical demographics.</p>
+                  </div>
+               </div>
+               <div className="ethics-item">
+                  <div className="eth-icon"><Activity size={16}/></div>
+                  <div className="eth-text">
+                     <strong>Human Oversight</strong>
+                     <p>Designed as a CDSS (Support System) requiring final sign-off from licensed clinicians.</p>
+                  </div>
+               </div>
             </div>
          </div>
       </div>
@@ -232,8 +281,8 @@ export default function Help() {
          
          <div style={{marginTop: '32px', fontSize: '0.7rem', color: 'var(--text-primary)', opacity: 0.6, fontStyle: 'italic'}}>
             © 2026 Med-AI Laboratory | Lead Architect: Utkarsh Srivastav
-         </div>
       </div>
     </div>
+  </div>
   );
 }

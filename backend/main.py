@@ -358,3 +358,13 @@ async def scan_xray(
     pid = log_patient(patient_data, file.filename, report, processing_ms, org)
         
     return {"status": "success", "report": report, "patient": patient_data, "image_name": file.filename, "patient_id": pid}
+
+class TranslateRequest(BaseModel):
+    text: str
+    target_lang: str
+
+@app.post("/api/translate")
+def translate_text(req: TranslateRequest):
+    from ai_service import translate_clinical_text
+    translated = translate_clinical_text(req.text, req.target_lang)
+    return {"translated_text": translated}

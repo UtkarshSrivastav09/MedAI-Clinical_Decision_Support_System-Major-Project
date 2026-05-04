@@ -10,6 +10,7 @@ export default function ReportViewer({ report, patient, imageName, preview, pati
    const [heatmapActive, setHeatmapActive] = useState(false);
    const [isGenerating, setIsGenerating] = useState(false);
    const [showPreview, setShowPreview] = useState(false);
+   const [translation, setTranslation] = useState({ active: false, lang: 'English', loading: false, content: null });
 
    const suggestionPills = [
       "Typical recovery timeline?",
@@ -64,6 +65,27 @@ export default function ReportViewer({ report, patient, imageName, preview, pati
          setOverrideSaved(true);
       } catch (e) {
          console.error(e);
+      }
+   };
+
+   const handleTranslate = async (targetLang) => {
+      if (targetLang === 'English') {
+         setTranslation({ active: false, lang: 'English', loading: false, content: null });
+         return;
+      }
+      setTranslation(prev => ({ ...prev, loading: true, lang: targetLang }));
+      try {
+         const textToTranslate = `${layman?.layman_summary || ""} Findings: ${layman?.layman_findings || ""}`;
+         const res = await fetch("http://127.0.0.1:8000/api/translate", {
+            method: "POST",
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: textToTranslate, target_lang: targetLang })
+         });
+         const data = await res.json();
+         setTranslation({ active: true, lang: targetLang, loading: false, content: data.translated_text });
+      } catch (e) {
+         console.error(e);
+         setTranslation(prev => ({ ...prev, loading: false }));
       }
    };
 
@@ -131,7 +153,7 @@ export default function ReportViewer({ report, patient, imageName, preview, pati
 
                {/* Left: Chat Widget */}
                <div style={{ flex: 1, background: 'rgba(0, 229, 255, 0.05)', border: '1px solid var(--accent-cyan)', padding: '16px', borderRadius: '12px' }}>
-                  <h4 style={{ color: 'var(--accent-cyan)', marginTop: 0, display: 'flex', alignItems: 'center', gap: '8px' }}><MessageSquare size={16} /> Interactive Radiologist Co-Pilot Chat</h4>
+                  <h4 style={{ color: 'var(--accent-cyan)', marginTop: 0, display: 'flex', alignItems: 'center', gap: '8px' }}><MessageSquare size={16} /> Interactive Imaging AI Co-Pilot</h4>
 
                   <div style={{ maxHeight: '180px', overflowY: 'auto', marginBottom: '12px', paddingRight: '8px', fontSize: '0.9rem' }} className="custom-scroll">
                      {chatLog.length === 0 ? <p style={{ color: 'var(--text-secondary)' }}>Ask Gemini specific contextual questions about this specific image.</p> : null}
@@ -195,7 +217,7 @@ export default function ReportViewer({ report, patient, imageName, preview, pati
             <div className="report-body hide-on-print" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
                <div className="report-image-section">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                     <h3 className="section-title" style={{ margin: 0 }}><ActivitySquare size={18} /> Radiography Analysis</h3>
+                     <h3 className="section-title" style={{ margin: 0 }}><ActivitySquare size={18} /> Clinical Imaging Analysis</h3>
                      <button
                         onClick={() => setHeatmapActive(!heatmapActive)}
                         className={`heatmap-toggle ${heatmapActive ? 'active' : ''}`}
@@ -204,7 +226,7 @@ export default function ReportViewer({ report, patient, imageName, preview, pati
                      </button>
                   </div>
                   <div className="radiology-frame">
-                     <img src={preview} alt="Patient X-ray" className="analyzed-image" />
+                     <img src={preview} alt="Patient Clinical Scan" className="analyzed-image" />
                      {heatmapActive && report.visual_annotations && (
                         <div className="heatmap-overlay-v2">
                            {report.visual_annotations.map((ann, idx) => {
@@ -241,10 +263,18 @@ export default function ReportViewer({ report, patient, imageName, preview, pati
                </div>
 
                <div className="report-text-section">
-                  <div className="meta-stats" style={{ marginBottom: '20px' }}>
-                     <div className={`meta-badge severity-${displaySeverity}`}><ShieldAlert size={16} /> Severity: {isHealthy ? 'Normal / Healthy' : displaySeverity}</div>
-                     <div className="meta-badge confidence-badge"><Zap size={16} /> Confidence: {displayConfidence}%</div>
-                  </div>
+                   <div className="meta-stats" style={{ marginBottom: '20px', display: 'flex', gap: '12px', alignItems: 'center' }}>
+                      <div className={`meta-badge severity-${displaySeverity}`}><ShieldAlert size={16} /> Severity: {isHealthy ? 'Normal / Healthy' : displaySeverity}</div>
+                      <div className="meta-badge confidence-badge"><Zap size={16} /> Confidence: {displayConfidence}%</div>
+                      
+                      <button 
+                         onClick={() => handleTranslate(translation.active ? 'English' : 'Hindi')}
+                         className={`meta-badge translation-toggle ${translation.active ? 'active' : ''}`}
+                         style={{ cursor: 'pointer', border: '1px solid var(--accent-cyan)', background: translation.active ? 'var(--accent-cyan)' : 'transparent', color: translation.active ? '#000' : 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700 }}
+                      >
+                         <Info size={14} /> {translation.loading ? 'Translating...' : (translation.active ? 'Show English' : 'Translate to Hindi')}
+                      </button>
+                   </div>
 
                   <div className="report-section">
                      <h3 className="section-title"><HeartPulse size={18} /> Technical Diagnoses</h3>
@@ -256,6 +286,23 @@ export default function ReportViewer({ report, patient, imageName, preview, pati
                         <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{clinical.recommended_followup || 'Standard radiological follow-up as per institutional protocol.'}</span>
                      </div>
                   </div>
+
+                  {/* Patient Friendly Summary (Visible on screen) */}
+                  {layman?.layman_summary && (
+                     <div className="report-section layman-box" style={{ marginTop: '32px', borderTop: '1px dashed var(--border-color)', paddingTop: '24px' }}>
+                        <h3 className="section-title" style={{ color: 'var(--accent-cyan)' }}><Info size={18} /> Simplified Patient Summary</h3>
+                        
+                        {translation.loading ? (
+                           <div className="translation-loading">
+                              <div className="pulse-dot"></div> Translating via AI Neural Engine...
+                           </div>
+                        ) : (
+                           <p className="report-text" style={{ fontSize: translation.active ? '1.1rem' : '1rem', color: 'var(--text-primary)', borderLeft: translation.active ? '3px solid var(--accent-cyan)' : 'none', paddingLeft: translation.active ? '16px' : '0' }}>
+                              {translation.active ? translation.content : layman.layman_summary}
+                           </p>
+                        )}
+                     </div>
+                  )}
                </div>
             </div>
 
@@ -265,12 +312,14 @@ export default function ReportViewer({ report, patient, imageName, preview, pati
                   <h3 className="section-title"><HeartPulse size={18} /> Diagnosed Conditions</h3>
                   <ul className="test-list">{layman?.layman_diseases?.map((d, id) => <li key={id} className="test-item">{d}</li>)}</ul>
                </div>
-               {layman?.layman_summary && (
-                  <div className="report-section layman-box">
-                     <h3 className="section-title"><Info size={18} /> Simplified Patient Summary</h3>
-                     <p className="report-text">{layman.layman_summary}</p>
-                  </div>
-               )}
+                {layman?.layman_summary && (
+                   <div className="report-section layman-box">
+                      <h3 className="section-title"><Info size={18} /> Simplified Patient Summary</h3>
+                      <p className="report-text">
+                         {translation.active ? translation.content : layman.layman_summary}
+                      </p>
+                   </div>
+                )}
                {layman?.treatment_timeline && (
                   <div className="report-section layman-box">
                      <h3 className="section-title"><Clock size={18} /> Recommended Treatment Plan</h3>
@@ -367,10 +416,10 @@ export default function ReportViewer({ report, patient, imageName, preview, pati
 
                   <div className="pdf-sidebar">
                      <div className="pdf-section">
-                        <div className="pdf-section-header"><ActivitySquare size={18} /> Radiography</div>
+                        <div className="pdf-section-header"><ActivitySquare size={18} /> Clinical Imaging</div>
                         <div className="pdf-image-container">
                            {preview ? (
-                              <img src={preview} alt="Radiography" className="pdf-radiology-image" />
+                              <img src={preview} alt="Clinical Scan" className="pdf-radiology-image" />
                            ) : (
                               <div className="pdf-no-image">No Image Available</div>
                            )}
