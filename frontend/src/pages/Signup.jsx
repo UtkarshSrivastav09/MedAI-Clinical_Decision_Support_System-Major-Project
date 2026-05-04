@@ -25,18 +25,6 @@ const RegisterForm = ({ setAuth }) => {
     setErrorMsg(""); // Clear local error on change
   };
 
-  const [isMobile, setIsMobile] = useState(false);
-  const [useBiometrics, setUseBiometrics] = useState(false);
-
-  useEffect(() => {
-    // Detect mobile and biometric support
-    const checkSupport = async () => {
-      const mobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth <= 768;
-      setIsMobile(mobile);
-    };
-    checkSupport();
-  }, []);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -49,14 +37,6 @@ const RegisterForm = ({ setAuth }) => {
     const success = await register(form.username, form.email, form.password, form.role);
 
     if (success) {
-      // If biometrics enabled, "enroll" the device (Simulated WebAuthn for demo)
-      if (useBiometrics) {
-        localStorage.setItem(`bio_enrolled_${form.username}`, "true");
-        // We store credentials safely (in a real app, use WebAuthn proper)
-        localStorage.setItem(`bio_cred_${form.username}`, btoa(`${form.username}:${form.password}`));
-        console.log("🔒 Biometrics Enrolled for", form.username);
-      }
-
       sessionStorage.setItem("registrationSuccess", "true");
       sessionStorage.setItem("registeredEmail", form.email);
       sessionStorage.setItem("registeredUsername", form.username);
@@ -178,60 +158,6 @@ const RegisterForm = ({ setAuth }) => {
               />
               <Key size={18} />
             </motion.div>
-
-            {isMobile && (
-              <motion.div 
-                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
-                className={`biometric-option bio-card-premium ${useBiometrics ? 'active' : ''}`}
-                style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '12px', 
-                  margin: '16px 0', 
-                  padding: '16px', 
-                  borderRadius: '16px',
-                  cursor: 'pointer'
-                }}
-                onClick={() => setUseBiometrics(!useBiometrics)}
-              >
-                <div className="scan-line"></div>
-                <div className="bio-pulse" style={{ 
-                  width: '44px', 
-                  height: '44px', 
-                  borderRadius: '12px', 
-                  background: useBiometrics ? 'var(--accent-cyan)' : 'rgba(255,255,255,0.05)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.3s'
-                }}>
-                  <Activity size={22} color={useBiometrics ? '#000' : 'var(--text-secondary)'} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '0.95rem', fontWeight: 600, color: '#fff' }}>Secure Fingerprint</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>One-touch login enabled</div>
-                </div>
-                <div className={`bio-toggle ${useBiometrics ? 'active' : ''}`} style={{ 
-                  width: '44px', 
-                  height: '24px', 
-                  background: useBiometrics ? 'var(--accent-cyan)' : 'rgba(255,255,255,0.2)',
-                  borderRadius: '12px',
-                  position: 'relative',
-                  transition: 'all 0.3s'
-                }}>
-                  <div style={{ 
-                    width: '18px', 
-                    height: '18px', 
-                    background: '#fff', 
-                    borderRadius: '50%', 
-                    position: 'absolute',
-                    top: '3px',
-                    left: useBiometrics ? '23px' : '3px',
-                    transition: 'all 0.3s'
-                  }}></div>
-                </div>
-              </motion.div>
-            )}
 
             <AnimatePresence>
               {(errorMsg || authError) && (

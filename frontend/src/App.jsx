@@ -65,48 +65,6 @@ function NavLinks({ setAuth, isOpen, setIsOpen }) {
   );
 }
 
-function BottomNav({ isActive }) {
-  return (
-    <nav className="mobile-bottom-nav">
-      <Link to="/" className={`nav-item ${isActive('/')}`}><LayoutDashboard size={20} /></Link>
-      <Link to="/consult" className={`nav-item ${isActive('/consult')}`}><Video size={20} /></Link>
-      <div className="nav-scan-btn">
-        <Link to="/scanner" className={`scan-inner ${isActive('/scanner')}`}><Activity size={24} /></Link>
-      </div>
-      <Link to="/database" className={`nav-item ${isActive('/database')}`}><Database size={20} /></Link>
-      <Link to="/help" className={`nav-item ${isActive('/help')}`}><HelpCircle size={20} /></Link>
-    </nav>
-  );
-}
-
-function MobileHeader({ username, isLightMode, toggleTheme, setIsSidebarOpen }) {
-  const [greeting, setGreeting] = useState('');
-  
-  useEffect(() => {
-    const hour = new Date().getHours();
-    if (hour < 12) setGreeting('Good Morning');
-    else if (hour < 17) setGreeting('Good Afternoon');
-    else setGreeting('Good Evening');
-  }, []);
-
-  return (
-    <header className="premium-mobile-header">
-      <div className="header-left">
-        <span className="greeting-text">{greeting},</span>
-        <h2 className="user-name">{username || 'Clinician'}</h2>
-      </div>
-      <div className="header-right">
-        <button className="icon-btn theme-toggle" onClick={toggleTheme}>
-          {isLightMode ? <Moon size={20} /> : <Sun size={20} />}
-        </button>
-        <button className="icon-btn menu-toggle" onClick={() => setIsSidebarOpen(true)}>
-          <Menu size={20} />
-        </button>
-      </div>
-    </header>
-  );
-}
-
 function AppContent() {
   const [isAppLoading, setIsAppLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -116,26 +74,41 @@ function AppContent() {
   const [isLightMode, setIsLightMode] = useState(
     document.documentElement.getAttribute('data-theme') === 'light'
   );
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 900);
   const location = useLocation();
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 900);
-    window.addEventListener('resize', handleResize);
-    
     const startTime = Date.now();
+    
+    // WAKE UP BACKEND (Render Cold Start Mitigation)
     console.log("🚀 Warming up neural core...");
     
     const wakeUp = async () => {
       try {
-        await fetch(`${API_BASE_URL}/api/ping`);
-      } catch (e) {} finally {
+        const res = await fetch(`${API_BASE_URL}/api/ping`);
+        if (res.ok) {
+          console.log("✅ Neural core online!");
+        }
+      } catch (e) {
+        console.warn("⚠️ Neural core wake-up failed or timed out.");
+      } finally {
+        // Ensure preloader shows for at least 1.5s for branding
         const elapsed = Date.now() - startTime;
-        setTimeout(() => setIsAppLoading(false), Math.max(1500 - elapsed, 0));
+        const waitTime = Math.max(1500 - elapsed, 0);
+        
+        setTimeout(() => {
+          setIsAppLoading(false);
+        }, waitTime);
       }
     };
+
     wakeUp();
-    return () => window.removeEventListener('resize', handleResize);
+    
+    // Safety timeout to prevent infinite loading
+    const safetyTimer = setTimeout(() => {
+      setIsAppLoading(false);
+    }, 25000); // 25s max wait
+
+    return () => clearTimeout(safetyTimer);
   }, []);
 
   const toggleTheme = () => {
@@ -144,61 +117,65 @@ function AppContent() {
     document.documentElement.setAttribute('data-theme', newMode ? 'light' : 'dark');
   };
 
+  // Determine if the current page is an authentication page
   const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
-  const isActive = (path) => location.pathname === path ? 'active' : '';
 
   return (
     <>
       {isAppLoading && <Preloader />}
-      <div className={`app-container ${isMobile ? 'mobile-mode' : ''}`} style={{ display: isAppLoading ? 'none' : 'flex' }}>
-        
-      {!isAuthPage && isAuthenticated && !isMobile && (
-        <NavLinks setAuth={setIsAuthenticated} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
-      )}
-
-      {/* Mobile Sidebar (Drawer) */}
-      {!isAuthPage && isAuthenticated && isMobile && (
-        <NavLinks setAuth={setIsAuthenticated} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
-      )}
+      <div className="app-container" style={{ display: isAppLoading ? 'none' : 'flex' }}>
+        {/* Sidebar only shows if authenticated AND not on login/signup pages */}
+      {!isAuthPage && isAuthenticated && <NavLinks setAuth={setIsAuthenticated} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />}
 
       <main className={isAuthPage ? "auth-main" : "main-content"}>
-        {!isAuthPage && isAuthenticated && isMobile && (
-          <MobileHeader 
-            username={sessionStorage.getItem("username")} 
-            isLightMode={isLightMode} 
-            toggleTheme={toggleTheme} 
-            setIsSidebarOpen={setIsSidebarOpen} 
-          />
-        )}
-
-        {!isAuthPage && isAuthenticated && !isMobile && (
+        {!isAuthPage && isAuthenticated && (
           <div className="top-bar">
-            <button className="theme-toggle-btn" onClick={toggleTheme}>
+            <button className="mobile-menu-btn" onClick={() => setIsSidebarOpen(true)}>
+              <Menu size={24} />
+            </button>
+            <button 
+              className="theme-toggle-btn" 
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleTheme();
+              }} 
+              title="Toggle Theme"
+            >
               {isLightMode ? <Moon size={20} /> : <Sun size={20} />}
             </button>
           </div>
         )}
         
         <Suspense fallback={
-          <div className="loader-overlay">
-            <div className="loader-content">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', width: '100%', background: 'var(--bg-primary)' }}>
+            <div style={{ textAlign: 'center' }}>
               <Loader2 className="spin-anim" size={40} color="var(--accent-cyan)" />
-              <p>Synchronizing Neural Pathways...</p>
+              <p style={{ marginTop: '16px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Synchronizing Neural Pathways...</p>
             </div>
           </div>
         }>
           <Routes>
+            {/* Public Auth Routes */}
             <Route path="/login" element={!isAuthenticated ? <Login setAuth={setIsAuthenticated} /> : <Navigate to="/" />} />
             <Route path="/signup" element={!isAuthenticated ? <Signup setAuth={setIsAuthenticated} /> : <Navigate to="/" />} />
+
+            {/* Protected Routes - Redirect to Login if not authenticated */}
             <Route path="/" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} />
             <Route path="/consult" element={isAuthenticated ? <Consult /> : <Navigate to="/login" />} />
             <Route path="/scanner" element={isAuthenticated ? <Scanner /> : <Navigate to="/login" />} />
             <Route 
               path="/triage" 
-              element={isAuthenticated && sessionStorage.getItem("username") === 'admin' ? <Triage /> : <Navigate to="/" />} 
+              element={
+                isAuthenticated && sessionStorage.getItem("username") === 'admin' 
+                  ? <Triage /> 
+                  : <Navigate to="/" />
+              } 
             />
             <Route path="/database" element={isAuthenticated ? <PatientDatabase /> : <Navigate to="/login" />} />
             <Route path="/help" element={isAuthenticated ? <Help /> : <Navigate to="/login" />} />
+
+            {/* Catch-all redirect */}
             <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} />} />
           </Routes>
         </Suspense>
@@ -209,14 +186,10 @@ function AppContent() {
           </footer>
         )}
       </main>
-
-      {/* Unique Mobile Bottom Nav */}
-      {!isAuthPage && isAuthenticated && isMobile && <BottomNav isActive={isActive} />}
     </div>
     </>
   );
 }
-
 
 export default function App() {
   return (
@@ -224,4 +197,4 @@ export default function App() {
       <AppContent />
     </Router>
   );
-}
+}
