@@ -61,27 +61,82 @@ const RegisterForm = ({ setAuth }) => {
 
         {/* Left Side: Brand Info */}
         <div className="auth-brand" style={{ background: 'linear-gradient(135deg, rgba(15,23,42,0.8) 0%, rgba(30,58,138,0.4) 100%)' }}>
+          {/* Glowing Neural Visualizer Core */}
           <motion.div 
-            initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3, duration: 0.7 }}
-            className="logo" style={{ marginBottom: '20px', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '12px' }}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2, duration: 0.8 }}
+            className="neural-core-wrapper"
           >
-            <div className="stat-icon" style={{ background: 'rgba(179, 136, 255, 0.1)', width: '48px', height: '48px' }}>
-              <ShieldAlert color="var(--accent-purple)" />
-            </div>
+            <div className="neural-grid"></div>
+            <motion.div 
+              className="neural-ring ring-outer"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+              style={{ borderColor: 'rgba(179, 136, 255, 0.4)' }}
+            />
+            <motion.div 
+              className="neural-ring ring-inner"
+              animate={{ rotate: -360 }}
+              transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+            />
+            <div className="scanner-laser" style={{ background: 'linear-gradient(90deg, transparent, var(--accent-purple), transparent)', boxShadow: '0 0 10px var(--accent-purple), 0 0 20px var(--accent-purple)' }}></div>
+            <motion.div 
+              className="neural-orb"
+              whileHover={{ scale: 1.1, boxShadow: "0 0 40px rgba(179, 136, 255, 0.5)" }}
+              transition={{ type: "spring", stiffness: 300, damping: 15 }}
+            >
+              <ShieldAlert size={30} color="var(--accent-purple)" className="pulse-icon" />
+            </motion.div>
+          </motion.div>
+
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.5 }}
+            className="logo-badge"
+            style={{ backgroundColor: 'rgba(179, 136, 255, 0.08)', borderColor: 'rgba(179, 136, 255, 0.2)' }}
+          >
             <span className="shimmer-text">Welcome to Med-AI</span>
           </motion.div>
+
           <motion.h1 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4, duration: 0.7 }}
-            style={{ fontSize: '2.5rem', marginBottom: '16px' }}
+            initial={{ opacity: 0, y: 15 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: 0.5, duration: 0.6 }}
+            className="brand-title"
           >
-            AI-Powered <br />Clinical Support
+            AI-Powered <br />
+            <span className="gradient-text-purple">Clinical Support</span>
           </motion.h1>
+
           <motion.p 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5, duration: 0.7 }}
-            className="subtitle" style={{ fontSize: '1.05rem', lineHeight: '1.6' }}
+            initial={{ opacity: 0, y: 10 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: 0.6, duration: 0.5 }}
+            className="brand-subtitle"
           >
             Join our AI-driven system to upload, analyze, and manage clinical data efficiently.
           </motion.p>
+
+          {/* Diagnostic Status Indicator */}
+          <motion.div 
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7, duration: 0.6 }}
+            className="brand-stats"
+          >
+            <div className="stat-pill">
+              <span className="stat-dot green"></span>
+              <span>Core Online</span>
+            </div>
+            <div className="stat-pill">
+              <span className="stat-dot purple"></span>
+              <span>HIPAA Secure</span>
+            </div>
+            <div className="stat-pill">
+              <span className="stat-dot cyan"></span>
+              <span>v2.8-Neural</span>
+            </div>
+          </motion.div>
         </div>
 
         {/* Right Side: Form */}
