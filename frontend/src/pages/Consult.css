@@ -562,6 +562,16 @@
     margin-bottom: 10px;
   }
   .patient-pip { width: 140px; height: 90px; }
+  
+  .glass-panel {
+    background: rgba(19, 23, 30, 0.92) !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+  }
+  .ai-core {
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+  }
 }
 
 @media (max-width: 600px) {

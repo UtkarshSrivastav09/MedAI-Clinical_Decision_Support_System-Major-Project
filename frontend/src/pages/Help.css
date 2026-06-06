@@ -342,21 +342,28 @@
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 16px !important;
   }
-  .architect-profile {
-    padding: 24px !important;
+  .architect-card {
+    padding: 20px !important;
     text-align: center;
   }
-  .architect-profile > div {
-    justify-content: center;
-    gap: 20px !important;
+  .architect-main {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 24px !important;
   }
-  .architect-info {
+  .architect-details {
     min-width: 100% !important;
+    text-align: center;
   }
-  .architect-info > div {
-    justify-content: center;
+  .name-group {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 8px !important;
   }
-  .social-links {
+  .name-group h2 {
+    font-size: 1.8rem !important; /* Prevent large name title from overflowing mobile screens */
+  }
+  .social-links-minimal {
     justify-content: center;
     flex-wrap: wrap;
   }

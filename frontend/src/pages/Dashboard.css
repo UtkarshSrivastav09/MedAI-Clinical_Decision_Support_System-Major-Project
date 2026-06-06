@@ -280,6 +280,9 @@
 }
 
 @media (max-width: 768px) {
+  .header-art-container {
+    display: none !important; /* Completely turn off expensive DNA animation loop on mobile */
+  }
   .page-header {
     flex-direction: column !important;
     gap: 16px;
