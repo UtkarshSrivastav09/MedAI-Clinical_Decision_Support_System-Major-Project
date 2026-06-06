@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { User, Mail, Key, LogIn, ShieldAlert, Building, Loader2, Activity } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import useAuth from "../hooks/useAuth";
+import InteractiveBackground from "../components/InteractiveBackground";
 import './AuthStyles.css';
 
 const RegisterForm = ({ setAuth }) => {
@@ -60,7 +61,8 @@ const RegisterForm = ({ setAuth }) => {
       >
 
         {/* Left Side: Brand Info */}
-        <div className="auth-brand" style={{ background: 'linear-gradient(135deg, rgba(15,23,42,0.8) 0%, rgba(30,58,138,0.4) 100%)' }}>
+        <div className="auth-brand">
+          <InteractiveBackground colorTheme="purple" />
           {/* Glowing Neural Visualizer Core */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.8 }}

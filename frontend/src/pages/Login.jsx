@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { User, LogIn, CheckCircle, Lock, Activity, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import useAuth from "../hooks/useAuth";
+import InteractiveBackground from "../components/InteractiveBackground";
 import './AuthStyles.css';
 
 const LoginForm = ({ setAuth }) => {
@@ -55,6 +56,7 @@ const LoginForm = ({ setAuth }) => {
         className="glass-card auth-container"
       >
         <div className="auth-brand">
+          <InteractiveBackground colorTheme="cyan" />
           {/* Glowing Neural Visualizer Core */}
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
