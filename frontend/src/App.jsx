@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
-import { Stethoscope, Activity, Database, LayoutDashboard, Layers, LogOut, Video, Menu, X, Sun, Moon, HelpCircle, Loader2 } from 'lucide-react';
+import { Stethoscope, Activity, Database, LayoutDashboard, Layers, LogOut, Video, Menu, X, Sun, Moon, HelpCircle, Loader2, PieChart } from 'lucide-react';
 import Preloader from './components/Preloader';
 import API_BASE_URL from './api';
 import "./index.css";
@@ -15,6 +15,7 @@ const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Triage = lazy(() => import('./pages/Triage'));
 const Consult = lazy(() => import('./pages/Consult'));
 const Help = lazy(() => import('./pages/Help'));
+const Analytics = lazy(() => import('./pages/Analytics'));
 
 function NavLinks({ setAuth, isOpen, setIsOpen }) {
   const location = useLocation();
@@ -47,6 +48,7 @@ function NavLinks({ setAuth, isOpen, setIsOpen }) {
         </div>
         <div className="nav-links">
           <Link to="/" onClick={handleNavClick} className={`nav-item ${isActive('/')}`}><LayoutDashboard size={18} /> Admin Dashboard</Link>
+          <Link to="/analytics" onClick={handleNavClick} className={`nav-item ${isActive('/analytics')}`}><PieChart size={18} /> Analytics & Insights</Link>
           <Link to="/consult" onClick={handleNavClick} className={`nav-item ${isActive('/consult')}`}><Video size={18} /> AI TeleConsult</Link>
           <Link to="/scanner" onClick={handleNavClick} className={`nav-item ${isActive('/scanner')}`}><Activity size={18} /> Clinical Imaging</Link>
           {username === 'admin' && (
@@ -162,6 +164,7 @@ function AppContent() {
 
             {/* Protected Routes - Redirect to Login if not authenticated */}
             <Route path="/" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} />
+            <Route path="/analytics" element={isAuthenticated ? <Analytics /> : <Navigate to="/login" />} />
             <Route path="/consult" element={isAuthenticated ? <Consult /> : <Navigate to="/login" />} />
             <Route path="/scanner" element={isAuthenticated ? <Scanner /> : <Navigate to="/login" />} />
             <Route 
