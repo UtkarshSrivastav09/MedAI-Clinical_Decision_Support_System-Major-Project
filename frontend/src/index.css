@@ -122,6 +122,11 @@ button {
     inset 4px 0 15px -10px rgba(255, 255, 255, 0.4), 
     inset -4px 0 15px -10px rgba(255, 255, 255, 0.4),
     0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  /* Chrome display & graphics fixes for backdrop-filter rendering glitch */
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 /* Base Layout Config */

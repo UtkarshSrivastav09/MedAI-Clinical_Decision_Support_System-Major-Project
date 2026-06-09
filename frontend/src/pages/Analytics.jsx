@@ -84,6 +84,211 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
+const NeuralCoreHealthHUD = () => {
+  const [activeNode, setActiveNode] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const systems = [
+    { 
+      id: 'core', 
+      name: 'Neural Core', 
+      health: 98, 
+      color: '#00E5FF', 
+      latency: '14ms', 
+      load: '12%', 
+      status: 'Nominal',
+      desc: 'Synaptic inference matrix & classification engine.'
+    },
+    { 
+      id: 'db', 
+      name: 'DB Sync', 
+      health: 92, 
+      color: '#00E676', 
+      latency: '42ms', 
+      load: '38%', 
+      status: 'Active',
+      desc: 'Real-time patient records synchronization and indexing.'
+    },
+    { 
+      id: 'img', 
+      name: 'Image Proc.', 
+      health: 85, 
+      color: '#A371F7', 
+      latency: '124ms', 
+      load: '64%', 
+      status: 'Active',
+      desc: 'DICOM formatting and neural feature extraction pipeline.'
+    },
+    { 
+      id: 'api', 
+      name: 'API Gateway', 
+      health: 72, 
+      color: '#FF9800', 
+      latency: '18ms', 
+      load: '82%', 
+      status: 'Warning',
+      desc: 'Load balancer & token authentication controller.'
+    }
+  ];
+
+  const currentNode = activeNode !== null ? systems[activeNode] : systems[0];
+
+  return (
+    <div className="neural-hud-container">
+      <div className="reactor-visualizer-wrapper">
+        <svg viewBox="0 0 200 200" className="reactor-svg">
+          <defs>
+            <filter id="glow-heavy" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="6" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+
+          <circle 
+            cx="100" 
+            cy="100" 
+            r="28" 
+            fill="rgba(5, 10, 20, 0.9)" 
+            stroke="rgba(255, 255, 255, 0.05)" 
+            strokeWidth="2" 
+          />
+          <circle 
+            cx="100" 
+            cy="100" 
+            r="24" 
+            fill={currentNode.color} 
+            className="reactor-core-pulse"
+            style={{
+              filter: `drop-shadow(0 0 10px ${currentNode.color})`,
+              transition: 'all 0.5s ease',
+              opacity: 0.15 + (currentNode.health / 150)
+            }}
+          />
+          <circle 
+            cx="100" 
+            cy="100" 
+            r="8" 
+            fill="#ffffff" 
+            style={{
+              filter: `drop-shadow(0 0 8px ${currentNode.color})`,
+              transition: 'all 0.5s ease'
+            }}
+          />
+
+          {systems.map((sys, idx) => {
+            const radius = 42 + idx * 14;
+            const circumference = 2 * Math.PI * radius;
+            const strokeDashoffset = circumference - (sys.health / 100) * circumference;
+            const rotation = idx * 45;
+            const isHovered = activeNode === idx;
+
+            return (
+              <g 
+                key={sys.id} 
+                className="reactor-arc-group"
+                style={{ cursor: 'pointer' }}
+                onMouseEnter={() => setActiveNode(idx)}
+                onMouseLeave={() => setActiveNode(null)}
+                onClick={() => setActiveNode(idx)}
+                onTouchStart={(e) => {
+                  setActiveNode(idx);
+                }}
+              >
+                <circle
+                  cx="100"
+                  cy="100"
+                  r={radius}
+                  fill="none"
+                  stroke="rgba(255, 255, 255, 0.03)"
+                  strokeWidth="5"
+                />
+                <circle
+                  cx="100"
+                  cy="100"
+                  r={radius}
+                  fill="none"
+                  stroke={sys.color}
+                  strokeWidth={isHovered ? "7" : "5"}
+                  strokeDasharray={circumference}
+                  strokeDashoffset={strokeDashoffset}
+                  strokeLinecap="round"
+                  transform={`rotate(${-90 + rotation} 100 100)`}
+                  style={{
+                    filter: isHovered ? 'url(#glow-heavy)' : 'none',
+                    opacity: activeNode === null || isHovered ? 1 : 0.35,
+                    transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                  }}
+                />
+              </g>
+            );
+          })}
+        </svg>
+
+        <div className="reactor-core-readout">
+          <div className="readout-health" style={{ color: currentNode.color }}>
+            {currentNode.health}%
+          </div>
+          <div className="readout-label">SYSTEM HEALTH</div>
+        </div>
+      </div>
+
+      <div className="hud-panel-grid">
+        {systems.map((sys, idx) => {
+          const isHovered = activeNode === idx;
+          return (
+            <div
+              key={sys.id}
+              className={`hud-card ${isHovered ? 'active' : ''}`}
+              style={{ 
+                '--accent-color': sys.color,
+                borderColor: isHovered ? sys.color : 'var(--border-color)',
+                boxShadow: isHovered ? `0 0 15px ${sys.color}25` : 'none'
+              }}
+              onMouseEnter={() => setActiveNode(idx)}
+              onMouseLeave={() => setActiveNode(null)}
+              onClick={() => setActiveNode(idx)}
+              onTouchStart={() => {
+                setActiveNode(idx);
+              }}
+            >
+              <div className="hud-card-header">
+                <span className="hud-node-dot" style={{ backgroundColor: sys.color }}></span>
+                <span className="hud-node-name">{sys.name}</span>
+                <span className="hud-node-percent" style={{ color: sys.color }}>{sys.health}%</span>
+              </div>
+              
+              <div className="hud-card-details">
+                <div className="hud-stat">
+                  <span className="hud-stat-lbl">LATENCY</span>
+                  <span className="hud-stat-val">{sys.latency}</span>
+                </div>
+                <div className="hud-stat">
+                  <span className="hud-stat-lbl">LOAD</span>
+                  <span className="hud-stat-val">{sys.load}</span>
+                </div>
+              </div>
+
+              <div className="hud-node-desc">
+                {sys.desc}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 const LiveTelemetryConsole = () => {
   const [logs, setLogs] = useState([
     { id: 1, type: 'info', msg: 'Neural Core initialized. Connecting to remote PACS...' },
@@ -152,6 +357,14 @@ export default function Analytics() {
   const criticalFlags = useCountUp(142, 3000);
   const hoursSaved = useCountUp(1420, 3500);
 
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <div className="analytics-container">
       <div className="analytics-header">
@@ -217,28 +430,7 @@ export default function Analytics() {
           <div className="chart-header">
             <h3><Cpu size={18} color="#00E5FF"/> Neural Core Health HUD</h3>
           </div>
-          <div className="chart-wrapper">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadialBarChart 
-                cx="50%" cy="50%" 
-                innerRadius="30%" outerRadius="100%" 
-                barSize={15} 
-                data={systemHealthData}
-                startAngle={90} endAngle={-270}
-              >
-                <RadialBar
-                  minAngle={15}
-                  background={{ fill: 'rgba(255,255,255,0.05)' }}
-                  clockWise
-                  dataKey="value"
-                  cornerRadius={10}
-                  label={{ fill: '#ffffff', position: 'insideStart', fontSize: 11, fontWeight: 'bold' }}
-                />
-                <Legend iconSize={10} layout="vertical" verticalAlign="middle" align="right" wrapperStyle={{fontSize: '0.8rem', paddingLeft: '10px'}} />
-                <Tooltip content={<CustomTooltip />} />
-              </RadialBarChart>
-            </ResponsiveContainer>
-          </div>
+          <NeuralCoreHealthHUD />
         </div>
 
         {/* CHART: AI vs Human Efficiency */}
@@ -283,8 +475,8 @@ export default function Analytics() {
                   data={demographicData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={80}
-                  outerRadius={110}
+                  innerRadius={isMobile ? 50 : 80}
+                  outerRadius={isMobile ? 80 : 110}
                   paddingAngle={5}
                   dataKey="value"
                   stroke="none"
@@ -294,7 +486,12 @@ export default function Analytics() {
                   ))}
                 </Pie>
                 <Tooltip content={<CustomTooltip />} />
-                <Legend layout="vertical" verticalAlign="middle" align="right" wrapperStyle={{fontSize: '0.85rem'}} />
+                <Legend 
+                  layout={isMobile ? "horizontal" : "vertical"} 
+                  verticalAlign={isMobile ? "bottom" : "middle"} 
+                  align={isMobile ? "center" : "right"} 
+                  wrapperStyle={{ fontSize: '0.85rem', marginTop: isMobile ? '10px' : '0' }} 
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>

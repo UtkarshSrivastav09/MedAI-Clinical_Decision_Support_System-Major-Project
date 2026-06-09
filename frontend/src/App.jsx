@@ -68,7 +68,10 @@ function NavLinks({ setAuth, isOpen, setIsOpen }) {
 }
 
 function AppContent() {
-  const [isAppLoading, setIsAppLoading] = useState(true);
+  const [isAppLoading, setIsAppLoading] = useState(() => {
+    // Skip preloader on mobile devices (width <= 900px) for instant load
+    return window.innerWidth > 900;
+  });
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return sessionStorage.getItem("isAuthenticated") === "true";
   });
@@ -79,38 +82,23 @@ function AppContent() {
   const location = useLocation();
 
   useEffect(() => {
-    const startTime = Date.now();
+    // 1. Warm up backend in the background (non-blocking cold-start mitigation)
+    console.log("🚀 Warming up neural core in background...");
+    fetch(`${API_BASE_URL}/api/ping`)
+      .then(res => {
+        if (res.ok) console.log("✅ Neural core online!");
+      })
+      .catch(e => {
+        console.warn("⚠️ Neural core background warm-up failed or timed out.");
+      });
     
-    // WAKE UP BACKEND (Render Cold Start Mitigation)
-    console.log("🚀 Warming up neural core...");
-    
-    const wakeUp = async () => {
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/ping`);
-        if (res.ok) {
-          console.log("✅ Neural core online!");
-        }
-      } catch (e) {
-        console.warn("⚠️ Neural core wake-up failed or timed out.");
-      } finally {
-        // Ensure preloader shows for at least 1.5s for branding
-        const elapsed = Date.now() - startTime;
-        const waitTime = Math.max(1500 - elapsed, 0);
-        
-        setTimeout(() => {
-          setIsAppLoading(false);
-        }, waitTime);
-      }
-    };
-
-    wakeUp();
-    
-    // Safety timeout to prevent infinite loading
-    const safetyTimer = setTimeout(() => {
-      setIsAppLoading(false);
-    }, 25000); // 25s max wait
-
-    return () => clearTimeout(safetyTimer);
+    // 2. Hide preloader after a fixed branding delay (1.5 seconds) on desktop only
+    if (window.innerWidth > 900) {
+      const timer = setTimeout(() => {
+        setIsAppLoading(false);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
   }, []);
 
   const toggleTheme = () => {
