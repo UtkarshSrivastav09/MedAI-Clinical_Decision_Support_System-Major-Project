@@ -7,6 +7,7 @@
 
 An industrial-grade, full-stack Clinical Decision Support System (CDSS) designed to revolutionize radiologist workflows. By correlating multi-modal data points—including Chest X-rays, real-time vitals, and longitudinal patient history—Med-AI provides high-fidelity diagnostic suggestions with clinical precision.
 
+Project is Live at: https://med-ai-clinical-decision-support-sy.vercel.app/
 ---
 
 ## 🏗️ System Architecture
